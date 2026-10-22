@@ -14,6 +14,6 @@ async function checkSchema() {
     AND EXISTS(SELECT 1 FROM information_schema.columns
       WHERE table_schema='public' AND table_name='jobs' AND column_name='published_at') AND EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='student_profiles' AND column_name='availability_before_work')
     AND EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='jobs' AND column_name='requirements') AS ready`);
-  if (!schema.ready) throw new Error('Database upgrade required: run npm.cmd run migrate:profiles (or apply database/profile_calendar_migration.sql in pgAdmin), then run npm.cmd run migrate:ui and restart.');
+  if (!schema.ready) throw new Error('Database upgrade required: run npm.cmd run migrate:professional (or apply database/migrations/001_professional_upgrade.sql in pgAdmin), then restart.');
 }
 module.exports = { checkSchema };

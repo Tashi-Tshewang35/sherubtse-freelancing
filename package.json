@@ -17,7 +17,8 @@
     "test:coverage": "jest --runInBand --coverage",
     "test:setup": "node scripts/setupTestDatabases.js",
     "migrate:professional": "node scripts/migrateProfessional.js",
-    "check:delivery": "node scripts/checkDelivery.js"
+    "check:delivery": "node scripts/checkDelivery.js",
+    "test:start": "node scripts/smokeStart.js"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

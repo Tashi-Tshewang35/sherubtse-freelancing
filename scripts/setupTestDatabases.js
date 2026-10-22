@@ -32,6 +32,8 @@ async function setup() {
       for (const name of ['postgresql_schema.sql', 'migrations/001_professional_upgrade.sql']) {
         await target.none(fs.readFileSync(path.join(__dirname, '../database', name), 'utf8'));
       }
+    } else {
+      await target.none(fs.readFileSync(path.join(__dirname, '../database/migrations/001_professional_upgrade.sql'), 'utf8'));
     }
     mongo = new MongoClient(process.env.MONGODB_URI, { serverSelectionTimeoutMS: 5000 });
     await mongo.connect();

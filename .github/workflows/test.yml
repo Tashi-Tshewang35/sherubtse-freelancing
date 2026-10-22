@@ -1,0 +1,47 @@
+name: Unit 6 tests
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          # Disposable CI credentials only; never production credentials.
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: sherubtse_freelance_test_db
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      mongo:
+        image: mongo:7
+        ports: ['27017:27017']
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      NODE_ENV: test
+      DB_HOST: 127.0.0.1
+      DB_PORT: '5432'
+      DB_USER: postgres
+      DB_PASS: postgres
+      DB_NAME: sherubtse_freelance_test_db
+      DB_SSL: 'false'
+      MONGODB_URI: mongodb://127.0.0.1:27017
+      MONGODB_DB: sherubtse_freelance_test_feedback
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run test:setup
+      - run: npm run test:coverage
+      - run: npm run check:ui
+      - run: npm run check:delivery

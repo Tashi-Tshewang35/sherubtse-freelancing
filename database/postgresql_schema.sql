@@ -1,4 +1,4 @@
--- SHERUBTSE FREELANCE: PostgreSQL schema
+-- SHERUBTSE FREELANCING: PostgreSQL schema
 -- In pgAdmin, first create a database named sherubtse_freelance_db.
 -- Open that database's Query Tool and run this entire file.
 
@@ -90,4 +90,4 @@ COMMIT;
 -- SELECT * FROM jobs ORDER BY created_at DESC;
 -- SELECT * FROM applications ORDER BY created_at DESC;
 
--- Next run profile_calendar_migration.sql to add profiles, skills and publication windows.
+-- Next run migrations/001_professional_upgrade.sql for profiles and the full workflow.

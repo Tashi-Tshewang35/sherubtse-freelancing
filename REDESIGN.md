@@ -1,3 +1,5 @@
+> **Historical UI redesign report:** The subsequent Unit 6 preparation switches testing to Jest/Supertest and startup to server.js. Current setup/results are in [docs/UNIT6_DELIVERY.md](docs/UNIT6_DELIVERY.md). UI screenshot fixtures remain samples.
+
 # Sherubtse Freelancing — UI and workflow delivery
 
 The existing Express/EJS MVC application has been redesigned in place. No frontend framework or payment gateway was added. The logo artwork, all 36 existing page routes, all three calendar API routes, email verification, dual roles, PostgreSQL and MongoDB ratings remain in use. Six page routes were added for notifications, invitation responses and starting work.

@@ -1,3 +1,5 @@
+> **Current Unit 6 preparation:** Use [docs/UNIT6_DELIVERY.md](docs/UNIT6_DELIVERY.md) for setup, results and limitations, plus the [guide index](docs/README.md). The entry point is now `server.js`; `app.js` only exports Express. Testing now uses Jest/Supertest with separate test databases. Older update reports below are historical.
+
 > **October 2026 redesign:** See [REDESIGN.md](REDESIGN.md) for the current setup, migration, verification results, changed files and manual checks. Existing installations need `npm.cmd run migrate:ui` after the profile migration. Your existing `.env` should be retained.
 
 # Sherubtse Freelancing

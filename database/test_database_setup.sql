@@ -4,7 +4,7 @@ DO $$ BEGIN
   RAISE EXCEPTION 'Select sherubtse_freelance_test_db; no other database is allowed';
  END IF;
 END $$;
--- SHERUBTSE FREELANCE: PostgreSQL schema
+-- SHERUBTSE FREELANCING: PostgreSQL schema
 -- In pgAdmin, first create a database named sherubtse_freelance_db.
 -- Open that database's Query Tool and run this entire file.
 
@@ -96,7 +96,7 @@ COMMIT;
 -- SELECT * FROM jobs ORDER BY created_at DESC;
 -- SELECT * FROM applications ORDER BY created_at DESC;
 
--- Next run profile_calendar_migration.sql to add profiles, skills and publication windows.
+-- The combined professional upgrade follows below.
 
 -- Sherubtse Freelancing: non-destructive upgrade of the existing base schema.
 -- Back up first. Run against the selected application database, never another project.

@@ -79,4 +79,26 @@ describe('Student, employer, dual and admin authorization', () => {
     await agent.post('/logout').expect(302);
     await agent.get('/api/calendar').expect(401);
   });
+  test('administrator approval/rejection changes employer access and records the reason', async () => {
+    const administrator = await login(admin);
+    const business = await login(pending);
+    await administrator.post(`/admin/employers/${pending.id}/approve`).expect(302);
+    await business.get('/jobs/new').expect(200);
+    await administrator.post(`/admin/employers/${pending.id}/reject`).type('form').send({ reason: 'Please complete your business details.' }).expect(302);
+    await business.get('/jobs/new').expect(403);
+    const notice = await db.one('SELECT message FROM notifications WHERE user_id=$1 ORDER BY id DESC LIMIT 1', [pending.id]);
+    expect(notice.message).toContain('Please complete your business details.');
+  });
+  test('personal calendar tasks can be created and deleted only by their owner', async () => {
+    const owner = await login(student);
+    const other = await login(dual);
+    const local = value => new Date(value + 6 * 3600000).toISOString().slice(0,16);
+    const now = Date.now();
+    const response = await owner.post('/api/calendar/tasks').send({ title: 'Unit 6 personal task', startAt: local(now + 86400000), endAt: local(now + 90000000) }).expect(201);
+    const id = response.body.id;
+    await other.delete('/api/calendar/tasks/' + id).expect(204);
+    expect((await owner.get('/api/calendar')).body.some(event => event.id === id && event.event_type === 'personal')).toBe(true);
+    await owner.delete('/api/calendar/tasks/' + id).expect(204);
+    expect((await owner.get('/api/calendar')).body.some(event => event.id === id && event.event_type === 'personal')).toBe(false);
+  });
 });

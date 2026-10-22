@@ -1,3 +1,5 @@
+> **Current guide:** Follow [docs/RENDER_DEPLOYMENT_GUIDE.md](docs/RENDER_DEPLOYMENT_GUIDE.md). It documents the Unit 6 server split, native/Docker commands, combined migration, provider email limits and manual acceptance checks. Earlier notes below are retained as history.
+
 # Public hosting
 
 The app needs a Node.js or Docker host with outbound Gmail SMTP access, managed
