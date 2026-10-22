@@ -42,8 +42,8 @@ The notes are teaching references, not instructions to copy Campus Eats tables, 
 
 | Check | Result |
 | --- | --- |
-| Jest/Supertest | 90 tests passed, 12 suites, no skipped tests |
-| JavaScript syntax | 64 files passed node --check |
+| Jest/Supertest | 105 tests passed, 13 suites, no skipped tests |
+| JavaScript syntax | 66 files passed node --check |
 | EJS | All 19 templates compile |
 | Existing route declarations | All 42 page routes and 3 calendar API routes preserved |
 | npm start / server.js | Passed on a temporary HTTP port using isolated test databases |
@@ -52,7 +52,7 @@ The notes are teaching references, not instructions to copy Campus Eats tables, 
 | Data isolation | Development SQL row counts and MongoDB rating count unchanged; real .env hash unchanged; test fixtures cleaned |
 | Git / secrets | .env and .env.test ignored and untracked; known local credentials absent from distributable source; private files excluded from ZIP |
 | Combined migration | Fresh setup passed; two repeat upgrades preserved existing identity, work description and in_progress status inside a rolled-back test |
-| Coverage | 81.19% statements, 73.24% branches, 86.54% functions, 86.22% lines |
+| Coverage | 81.69% statements, 73.55% branches, 86.78% functions, 86.70% lines |
 
 Coverage HTML was opened and reviewed. server.js remains at 0% in Jest instrumentation because the actual startup is exercised separately by `npm run test:start`; do not interpret its zero as an untested startup or the overall percentage as proof of complete correctness. Error branches and some controller paths remain uncovered.
 
@@ -74,3 +74,8 @@ No testing technique replaces manual acceptance: use DEPLOYMENT_CHECKLIST.md for
 - No complete penetration, CSRF, accessibility or load certification is claimed. Preserve backups and complete live acceptance before public use.
 
 The source backup is `backups/before-unit6-implementation/`; earlier dependency-install backups are also private. No credentials or database dumps are included in the updated ZIP.
+
+
+## Production startup follow-up
+
+Startup now uses Render's trusted RENDER_EXTERNAL_URL when APP_URL is missing or is an example placeholder. A custom APP_URL still takes precedence. Validation runs inside the server's caught startup promise, so missing values are listed together without a raw stack trace and before database connections. `npm run check:config` performs the same preflight without starting the server. Credentials and a real hosting service are still required; no fake URL or default production secret is invented.

@@ -1,12 +1,15 @@
 if (process.env.NODE_ENV !== 'test') require('dotenv').config();
-const app = require('./app');
-const db = require('./config/db');
-const { connectMongo, closeMongo } = require('./config/mongo');
-const { checkSchema } = require('./config/checkSchema');
+let db;
+let mongo;
 
 async function start() {
-  await checkSchema();
-  await connectMongo();
+  // Validate inside the caught startup promise, before loading/connecting databases.
+  require('./config/production').configureProduction();
+  const app = require('./app');
+  db = require('./config/db');
+  mongo = require('./config/mongo');
+  await require('./config/checkSchema').checkSchema();
+  await mongo.connectMongo();
   const port = Number(process.env.PORT || 3000);
   const host = process.env.HOST || '0.0.0.0';
   return new Promise((resolve, reject) => {
@@ -19,8 +22,7 @@ async function start() {
 }
 
 async function closeDatabases() {
-  await closeMongo();
-  await db.$pool.end();
+  await Promise.all([mongo ? mongo.closeMongo() : Promise.resolve(), db ? db.$pool.end() : Promise.resolve()]);
 }
 
 if (require.main === module) {
@@ -35,7 +37,8 @@ if (require.main === module) {
     process.once('SIGINT', shutdown);
   }).catch(async error => {
     // Schema guidance is safe; database errors and URLs may contain credentials.
-    console.error('Startup failed:', error.code === 'EADDRINUSE' ? 'Port is already in use.' :
+    console.error('Startup failed:', error.code === 'CONFIGURATION_ERROR' ? error.message :
+      error.code === 'EADDRINUSE' ? 'Port is already in use.' :
       error.message?.startsWith('Database upgrade required:') ? error.message :
       'Check database connectivity, schema and required environment variables.');
     await closeDatabases().catch(() => {});

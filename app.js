@@ -1,6 +1,5 @@
 if (process.env.NODE_ENV !== 'test') require('dotenv').config();
 process.env.TZ = 'Asia/Thimphu';
-require('./config/production').validateProduction();
 
 const path = require('path');
 const express = require('express');

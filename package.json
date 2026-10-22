@@ -18,7 +18,8 @@
     "test:setup": "node scripts/setupTestDatabases.js",
     "migrate:professional": "node scripts/migrateProfessional.js",
     "check:delivery": "node scripts/checkDelivery.js",
-    "test:start": "node scripts/smokeStart.js"
+    "test:start": "node scripts/smokeStart.js",
+    "check:config": "node scripts/checkConfig.js"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

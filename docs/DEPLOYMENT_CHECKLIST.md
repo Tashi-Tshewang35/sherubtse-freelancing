@@ -12,7 +12,8 @@ Mark completed items only. Use disposable accounts and non-sensitive evidence.
 - [ ] Verify Atlas user, network access, MONGODB_URI/MONGODB_DB and rating/session indexes.
 - [ ] Set host secrets privately; exclude real env files, dumps and backups from Git/Docker.
 - [ ] Configure Gmail/App Password and a hosting plan permitting SMTP.
-- [ ] Set APP_URL to public HTTPS; request fresh email links.
+- [ ] Verify the resolved public HTTPS URL (custom APP_URL or automatic Render URL); request fresh email links.
+- [ ] Run npm run check:config in the hosting environment.
 - [ ] Seed the first administrator deliberately; use no public default password.
 
 ## Automated and local checks

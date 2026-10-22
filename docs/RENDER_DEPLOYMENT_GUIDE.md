@@ -41,7 +41,7 @@ Enter actual values privately under Render → Environment. Use `.env.production
 | NODE_ENV | production |
 | HOST | 0.0.0.0 |
 | PORT | Hosting service's assigned/configured HTTP port |
-| APP_URL | Exact public HTTPS origin |
+| APP_URL | Optional on Render: custom HTTPS origin; otherwise the built-in Render HTTPS URL is used |
 | SESSION_SECRET | Strong random value, at least 32 characters, stable across restarts |
 | TRUST_PROXY_HOPS | Trusted reverse-proxy count; normally 1 for the documented single-proxy setup |
 | DB_HOST/DB_PORT/DB_NAME/DB_USER/DB_PASS | Hosted PostgreSQL details; alternatively DATABASE_URL |
@@ -56,7 +56,7 @@ Generate a private session secret with `node -e "console.log(require('crypto').r
 
 Render supplies an HTTPS onrender.com address. Use it for both the website and APP_URL; emails automatically append `/verify/<unique-token>`. The startup log displays one shared-address line. Each account still needs its own token.
 
-**Difference from the classroom record:** production validation requires APP_URL before startup. Set the assigned/expected service URL during setup, or add the assigned URL as soon as Render creates the service and redeploy. An initial attempt may fail safely until then. Do not remove validation to make startup appear successful. Old emails keep their old address; request fresh verification emails after changing APP_URL.
+**Automatic Render address:** when APP_URL is blank or still an example placeholder, startup uses Render's documented RENDER_EXTERNAL_URL. A valid custom APP_URL takes priority. Website and verification emails share the resolved origin. Other hosting providers must supply APP_URL explicitly. Production still rejects localhost, HTTP, malformed URLs, user information and paths. Missing settings are reported together without an uncaught stack trace. Old emails keep their old address; request fresh verification emails after changing APP_URL. Run `npm run check:config` for a preflight without database connections or email delivery. See [Render default environment variables](https://render.com/docs/environment-variables#render_external_url).
 
 Set Render's health-check path to `/health`. Check both build and runtime logs: a successful build does not prove the environment/databases are correct. Once Live, visit the HTTPS homepage and `/health`:
 

@@ -35,6 +35,7 @@ npm.cmd run check:delivery
 ## Coverage and dependencies
 
 - Pure unit tests cover email, leading-zero student number, six-character/72-byte passwords, required fields, date order, application-window boundaries, integer ratings and status transitions.
+- Production regressions cover automatic Render URLs, custom domains, invalid URLs and controlled startup failures.
 - Import-safety tests check Express export, no listener/Mongo connection on import, safe health JSON and headers.
 - Supertest checks public pages, invalid signup/login, protected redirects, role permissions, pending approval, dual roles, calendar authentication and logout.
 - Real SQL/MongoDB workflows exercise profiles/skills, businesses, drafts/publication, application windows, invitations/consent, overlap withdrawal, availability, start/completion, ratings, notifications, approval and calendar privacy.
