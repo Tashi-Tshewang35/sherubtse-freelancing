@@ -1,0 +1,19 @@
+<%- include('../partials/header') %>
+<section class="auth-card">
+  <span class="eyebrow">Welcome back</span>
+<h1>Log in</h1>
+  <p class="auth-intro">Your next opportunity is waiting. Pick up where you left off.</p>
+  <form method="POST" action="/login" class="stack-form">
+    <label>Email address<input type="email" name="email" autocomplete="email" placeholder="you@example.com" required>
+</label>
+    <label>Password<input type="password" name="password" autocomplete="current-password" placeholder="Enter your password" required>
+</label>
+    <button class="btn" type="submit">Log In</button>
+  </form>
+  <p class="small">
+<a href="/resend-verification">Resend verification email</a>
+</p>
+  <p class="auth-switch">New to the community? <a href="/signup">Create an account</a>
+</p>
+</section>
+<%- include('../partials/footer') %>

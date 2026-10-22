@@ -1,0 +1,153 @@
+<%- include('../partials/header') %>
+<section class="detail-layout">
+  <article class="detail-card">
+    <div class="card-top">
+<span class="tag">
+<%= job.work_type %>
+</span>
+<span class="tag <%= job.urgency === 'urgent' ? 'urgent' : '' %>">
+<%= job.urgency %>
+</span>
+</div>
+    <h1>
+<%= job.title %>
+</h1>
+<p class="lead">
+<span class="avatar" aria-hidden="true">
+<%= initials(job.employer_name) %>
+</span> <%= job.employer_name %> · <%= job.location %>
+</p>
+    <h2>About this work</h2>
+<p class="work-description">
+<%= job.description %>
+</p>
+<% if(job.requirements){ %>
+<h2>What you will need</h2>
+<p class="work-description">
+<%= job.requirements %>
+</p>
+<% } %>
+<% if(user && user.id===job.employer_id && job.status==='open' && new Date(job.application_opens_at)>new Date()){ %>
+<p class="calendar-notice">Published and scheduled. Employees will see this work when applications open on <%= new Date(job.application_opens_at).toLocaleString() %> (Bhutan time).</p>
+<% } %>
+<p>Status: <span class="status <%= job.status %>">
+<%= job.status %>
+</span>
+</p>
+<p>Applications open: <%= new Date(job.application_opens_at).toLocaleString() %>
+<br>Applications close: <%= new Date(job.application_closes_at).toLocaleString() %>
+</p>
+<% if(application){ %>
+<p>Your application: <span class="status <%= application.status %>">
+<%= application.status %>
+</span>
+</p>
+<% } %>
+    <div class="facts">
+<div>
+<span>Wage</span>
+<strong>Nu. <%= job.wage_rate %> / <%= job.wage_unit %>
+</strong>
+</div>
+<div>
+<span>Workers needed</span>
+<strong>
+<%= job.workers_needed %>
+</strong>
+</div>
+<div>
+<span>Starts</span>
+<strong>
+<%= new Date(job.start_at).toLocaleString() %>
+</strong>
+</div>
+<div>
+<span>Ends</span>
+<strong>
+<%= new Date(job.end_at).toLocaleString() %>
+</strong>
+</div>
+</div>
+  </article>
+  <aside class="action-card">
+    <% if (user && user.isStudent && applicationsOpen && job.employer_id !== user.id && !application) { %>
+      <h2>Apply for this work</h2>
+<form method="POST" action="/jobs/<%= job.id %>/apply" class="stack-form">
+<label>Short message<textarea name="coverNote" rows="4" maxlength="500" placeholder="Why are you suitable?">
+</textarea>
+</label>
+<button class="btn">Submit Application</button>
+</form>
+    <% } else if (!user) { %>
+<h2>Interested?</h2>
+<p>Log in with a verified student account to apply.</p>
+<a class="btn" href="/login">Log In</a>
+<% } %>
+    <% if(user && !applicationsOpen && job.employer_id!==user.id){ %>
+<p class="calendar-notice">
+<%= new Date(job.application_opens_at)>new Date() ? 'Applications have not opened yet. Check the opening date.' : 'Applications are closed for this opportunity.' %>
+</p>
+<% } %>
+    <% if(user && application){ %>
+<h2>Your application</h2>
+<p>
+<span class="status <%= application.status %>">
+<%= statusLabel(application.status) %>
+</span>
+</p>
+<a class="btn secondary" href="/dashboard">Track progress</a>
+<% } %>
+    <% if(user && job.employer_id===user.id){ %>
+<p class="small">This is your posting. You cannot apply to your own work.</p>
+<% } %>
+    <% if (user && user.isEmployer && user.employerStatus === 'approved' && job.employer_id === user.id) { %>
+      <h2>Employer actions</h2>
+<form method="POST" action="/jobs/<%= job.id %>/cancel" data-confirm="Cancel this work? Pending applications and invitations will be withdrawn.">
+<button class="btn danger">Cancel work</button>
+</form>
+<% if(job.status==='draft'){ %>
+<form method="POST" action="/jobs/<%= job.id %>/publish">
+<button class="btn">Publish draft</button>
+<a class="btn secondary" href="/jobs/<%= job.id %>/edit">Edit draft</a>
+</form>
+<% } %>
+<a class="btn secondary block" href="/jobs/<%= job.id %>/applicants">View Applicants (<%= job.applicant_count %>)</a>
+<form method="POST" action="/jobs/<%= job.id %>/close" data-confirm="Close applications for this work?">
+<button class="btn danger block">Close applications</button>
+</form>
+    <% } %>
+  </aside>
+</section>
+
+<% if (user && user.isEmployer && user.employerStatus === 'approved' && job.employer_id === user.id && job.urgency === 'urgent') { %>
+<section class="form-card">
+<div class="section-heading">
+<div>
+<span class="eyebrow">Urgent recruitment</span>
+<h2>Invite an available student</h2>
+</div>
+</div>
+  <% if (!availableStudents.length) { %>
+<p class="empty">No verified students are available during this time.</p>
+<% } %>
+  <div class="people-list">
+<% availableStudents.forEach(student => { %>
+<div class="person-row">
+<div>
+<strong>
+<%= student.name %>
+</strong>
+<span>
+<%= student.email %>
+</span>
+</div>
+<form method="POST" action="/jobs/<%= job.id %>/recruit">
+<input type="hidden" name="studentId" value="<%= student.id %>">
+<button class="btn">Send invitation</button>
+</form>
+</div>
+<% }) %>
+</div>
+</section>
+<% } %>
+<%- include('../partials/footer') %>

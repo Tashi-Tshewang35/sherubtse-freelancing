@@ -1,0 +1,126 @@
+<%- include('partials/header') %>
+<section class="hero">
+<div class="hero-copy">
+<span class="eyebrow hero-kicker">
+<span class="live-dot">
+</span> Your community. Your next opportunity.</span>
+<h1>Big potential.<br>Local opportunities.<br>
+<span>Work that fits you.</span>
+</h1>
+<p>Sherubtse Freelancing connects students with flexible work in Kanglung. Put your skills to use, gain experience and grow alongside your community.</p>
+<div class="hero-actions">
+<a class="btn" href="/jobs">Find Work <span aria-hidden="true">&#8599;</span>
+</a>
+<a class="btn secondary" href="/signup">Create Account</a>
+</div>
+<div class="hero-assurance">
+<span>&#10003; Verified student identities</span>
+<span>&#10003; Agreed wages, upfront</span>
+</div>
+</div>
+<aside class="hero-panel" aria-label="Student freelancing benefits">
+<div class="panel-label">MADE FOR YOUR NEXT CHAPTER <span aria-hidden="true">&#8599;</span>
+</div>
+<img class="hero-logo" src="/images/logo.svg" alt="" width="88" height="106">
+<strong>Learn on campus.<br>Grow in your community.</strong>
+<p>Your skills have a place here.</p>
+<div class="schedule-preview">
+<span class="schedule-icon" aria-hidden="true">01</span>
+<div>
+<strong>Find your fit</strong>
+<span>Clear work, wages and expectations</span>
+</div>
+<span aria-hidden="true">&#8599;</span>
+</div>
+<div class="schedule-preview">
+<span class="schedule-icon" aria-hidden="true">02</span>
+<div>
+<strong>Keep life in balance</strong>
+<span>Work and study in one calendar</span>
+</div>
+<span aria-hidden="true">&#8599;</span>
+</div>
+<div class="hero-panel-bottom">SHERUBTSE COLLEGE <span>KANGLUNG, BHUTAN</span>
+</div>
+</aside>
+</section>
+<section class="benefit-strip" aria-label="Our community commitments">
+<div>
+<span class="benefit-icon" aria-hidden="true">&#8599;</span>
+<div>
+<strong>A community you can trust</strong>
+<p>Education email verification for students</p>
+</div>
+</div>
+<div>
+<span class="benefit-icon" aria-hidden="true">&#8599;</span>
+<div>
+<strong>Experience that matters</strong>
+<p>Build skills and a work reputation</p>
+</div>
+</div>
+<div>
+<span class="benefit-icon" aria-hidden="true">&#8599;</span>
+<div>
+<strong>Local connections</strong>
+<p>Work with approved community employers</p>
+</div>
+</div>
+</section>
+<section aria-labelledby="featured-title">
+<div class="section-heading">
+<div>
+<span class="eyebrow">A good place to start</span>
+<h2 id="featured-title">Find your next opportunity</h2>
+<p>Real work. Clear schedules. Right here in Kanglung.</p>
+</div>
+<a class="text-link" href="/jobs">View all work &#8594;</a>
+</div>
+<div class="card-grid">
+<% if(!jobs.length){ %>
+<div class="empty-state">
+<span class="eyebrow">New possibilities ahead</span>
+<h3>No available work just yet</h3>
+<p>Approved employers will post opportunities here. Build your profile so you are ready to apply.</p>
+<a class="btn secondary" href="<%= user ? '/profile' : '/signup' %>">Get ready for your first opportunity</a>
+</div>
+<% } %>
+<% jobs.forEach(job=>{ %>
+<%- include('partials/job-card',{job}) %>
+<% }) %>
+</div>
+</section>
+<section id="how-it-works" class="how-section">
+<div class="section-heading">
+<div>
+<span class="eyebrow">Simple from the start</span>
+<h2>A few steps to meaningful work</h2>
+</div>
+</div>
+<div class="three-columns">
+<article class="step-card">
+<span class="step-number">01</span>
+<h3>Create &amp; verify</h3>
+<p>Register with your Sherubtse education email. Employers verify their email and receive administrator approval.</p>
+</article>
+<article class="step-card">
+<span class="step-number">02</span>
+<h3>Find the right fit</h3>
+<p>Compare wages and schedules, share your skills and apply. Keep your availability up to date.</p>
+</article>
+<article class="step-card">
+<span class="step-number">03</span>
+<h3>Work &amp; grow</h3>
+<p>Track your application, complete your work and build a reputation through employer feedback.</p>
+</article>
+</div>
+</section>
+<section class="employer-banner">
+<div>
+<span class="eyebrow">For local employers</span>
+<h2>Good people. Right in your community.</h2>
+<p>Find verified students for your business, event or next project.<br>Post clear expectations and an agreed wage to get started.</p>
+</div>
+<a class="btn" href="<%= user ? '/dashboard' : '/signup' %>">Start hiring &#8599;</a>
+</section>
+<%- include('partials/footer') %>

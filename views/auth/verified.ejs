@@ -1,0 +1,15 @@
+<%- include('../partials/header') %>
+<section class="auth-card center">
+  <div class="success-icon">✓</div>
+<h1>Email verified</h1>
+  <p>You can now log in to your account.</p>
+  <% if (verifiedUser.is_student) { %>
+<p>Your student features are ready to use.</p>
+<% } %>
+  <% if (verifiedUser.is_employer && verifiedUser.employer_status !== 'approved') { %>
+    <p>Employer features require administrator approval. <%= verifiedUser.is_student ? 'You can use student features while waiting.' : 'You can log in to check your approval status.' %>
+</p>
+  <% } %>
+  <a class="btn" href="/login">Log In</a>
+</section>
+<%- include('../partials/footer') %>

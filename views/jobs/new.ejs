@@ -1,0 +1,94 @@
+<%- include('../partials/header') %>
+<section class="form-card">
+  <div class="page-title left">
+<span class="eyebrow">Employer</span>
+<h1>Post work</h1>
+<p>Give students clear information about the work and schedule.</p>
+</div>
+  <form method="POST" action="<%= draft ? '/jobs/'+draft.id+'/edit' : '/jobs' %>" class="stack-form" data-posting>
+    <fieldset class="form-section">
+<legend>1. Describe the opportunity</legend>
+<div class="form-grid">
+<label class="span-2">Work title<input name="title" required maxlength="120">
+</label>
+    <label>Work type<select name="workType" required>
+<option>Shop Assistance</option>
+<option>Food Service</option>
+<option>Event Support</option>
+<option>Cleaning</option>
+<option>Delivery</option>
+<option>Tutoring</option>
+<option>Data Entry</option>
+<option>Other</option>
+</select>
+</label>
+    <label>Urgency<select name="urgency" required>
+<option value="normal">Normal</option>
+<option value="urgent">Urgent</option>
+</select>
+</label>
+    </div>
+</fieldset>
+<fieldset class="form-section">
+<legend>2. Location &amp; agreed wage</legend>
+<div class="form-grid">
+<label>Location<input name="location" required maxlength="150">
+</label>
+    <label>Workers needed<input type="number" name="workersNeeded" min="1" max="50" value="1" required>
+</label>
+    <label>Wage rate (Nu.)<input type="number" name="wageRate" min="1" step="0.01" required>
+</label>
+    <label>Wage unit<select name="wageUnit">
+<option value="hour">Per hour</option>
+<option value="day">Per day</option>
+<option value="task">Per task</option>
+</select>
+</label>
+    </div>
+<p class="field-help">This is the wage agreed with the student. Payments are arranged directly with the employer.</p>
+</fieldset>
+<fieldset class="form-section">
+<legend>3. Applications &amp; work schedule</legend>
+<div class="form-grid">
+<label>Application opening date and time<input type="datetime-local" name="opensAt" value="<%= new Date(Date.now()+6*60*60*1000).toISOString().slice(0,16) %>" required>
+</label>
+    <label>Application closing date and time<input type="datetime-local" name="closesAt" required>
+</label>
+    <p class="span-2">All dates and times use Bhutan time (UTC+06:00). Opening defaults to now so published work appears immediately in employee calendars. A future opening keeps it hidden until that time. Applications must close by the work start.</p>
+    <label>Start date and time<input type="datetime-local" name="startAt" required>
+</label>
+    <label>End date and time<input type="datetime-local" name="endAt" required>
+</label>
+    </div>
+</fieldset>
+<fieldset class="form-section">
+<legend>4. Details &amp; requirements</legend>
+<div class="stack-form">
+<label>Work description<textarea name="description" rows="6" required maxlength="2000">
+</textarea>
+</label>
+    <label>Requirements<textarea name="requirements" rows="3" maxlength="1500" placeholder="Skills, experience or anything students should bring">
+</textarea>
+</label>
+</div>
+</fieldset>
+<section class="review-box">
+<h2>Ready to publish?</h2>
+<p id="postingReview">Check the wage, location and dates before publishing. Save a draft if you need more time.</p>
+</section>
+<div class="row-actions">
+<button class="btn" name="status" value="open">Publish Work</button>
+<button class="btn secondary" name="status" value="draft">Save Draft</button>
+</div>
+  </form>
+</section>
+<% if(draft){ %>
+<script type="application/json" id="draftData">
+<%- JSON.stringify(draft).replace(/</g,'\\u003c') %>
+</script>
+<script src="/js/draft.js">
+</script>
+<% } %>
+
+<%- include('../partials/footer') %>
+

@@ -1,0 +1,39 @@
+<%- include('../partials/header') %>
+<section class="page-title left">
+<span class="eyebrow">Explore your community</span>
+<h1>Find work that fits you.</h1>
+<p>Compare opportunities, check the schedule and take your next step.</p>
+</section>
+<form class="filter-bar" id="workFilters" role="search">
+<label>Search opportunities<input type="search" name="search" placeholder="Work, business or location">
+</label>
+<label>Work type<select name="type">
+<option value="">All work types</option>
+<% [...new Set(jobs.map(j=>j.work_type))].sort().forEach(type=>{ %>
+<option>
+<%= type %>
+</option>
+<% }) %>
+</select>
+</label>
+<label>Urgency<select name="urgency">
+<option value="">All opportunities</option>
+<option value="urgent">Urgent</option>
+<option value="normal">Normal</option>
+</select>
+</label>
+<button type="reset" class="btn secondary">Clear filters</button>
+</form>
+<p id="workCount" class="small" role="status">
+<%= jobs.length %> available opportunities &middot; All times are Bhutan time</p>
+<div class="card-grid" id="workResults">
+<% jobs.forEach(job=>{ %>
+<%- include('../partials/job-card',{job}) %>
+<% }) %>
+</div>
+<div id="workEmpty" class="empty-state" <%= jobs.length ? 'hidden' : '' %>>
+<h2>No matching work right now</h2>
+<p>Try a different search or check back for new opportunities.</p>
+<a class="btn secondary" href="<%= user ? '/profile' : '/signup' %>">Prepare your profile</a>
+</div>
+<%- include('../partials/footer') %>

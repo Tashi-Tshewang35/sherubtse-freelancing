@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#142e4c">
+<meta name="description" content="Student freelancing for Sherubtse College and the Kanglung community.">
+<title>
+<%= typeof title !== 'undefined' && title ? title : 'Home' %> | Sherubtse Freelancing</title>
+<link rel="stylesheet" href="/css/styles.css?v=3">
+<script src="/js/ui.js" defer>
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main-content">Skip to content</a>
+<div class="community-bar">
+<% if(typeof preview!=='undefined' && preview){ %>
+<strong>DESIGN PREVIEW · Fictional sample data</strong>
+<% } %>Built for Sherubtse students &amp; the Kanglung community <span>Local connections. Meaningful work.</span>
+</div>
+<header class="site-header">
+<a class="brand" href="/">
+<img class="brand-logo" src="/images/logo.svg" alt="" width="44" height="54">
+<span>Sherubtse<span class="brand-subtitle">Freelancing</span>
+</span>
+</a>
+<button class="menu-toggle btn secondary" type="button" aria-expanded="false" aria-controls="main-nav" hidden>Menu</button>
+<nav id="main-nav" aria-label="Main navigation">
+<a href="/jobs">Find Work</a>
+<% if (typeof user !== 'undefined' && user) { %>
+<a href="/dashboard">Dashboard</a>
+<a href="/profile">Profile</a>
+<a href="/notifications">Notifications</a>
+<% if(user.isEmployer && user.employerStatus==='approved'){ %>
+<a class="nav-cta" href="/jobs/new">Post Work</a>
+<% } %>
+<% if(user.isAdmin){ %>
+<a href="/admin">Admin</a>
+<% } %>
+<form class="inline-form" method="POST" action="/logout">
+<button class="nav-button">Log Out</button>
+</form>
+<% } else { %>
+<a href="/#how-it-works">How it works</a>
+<a href="/login">Log In</a>
+<a class="nav-cta" href="/signup">Create Account <span aria-hidden="true">&#8599;</span>
+</a>
+<% } %>
+</nav>
+</header>
+<main class="page-shell" id="main-content">
+<% if(typeof success!=='undefined' && success){ %>
+<div class="flash success" role="status">
+<strong>Success.</strong> <%= success %>
+</div>
+<% } %>
+<% if(typeof error!=='undefined' && error){ %>
+<div class="flash error" role="alert">
+<strong>Please check.</strong> <%= error %>
+</div>
+<% } %>

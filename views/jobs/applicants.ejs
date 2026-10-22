@@ -1,0 +1,82 @@
+<%- include('../partials/header') %>
+<section class="page-title">
+<span class="eyebrow">Recruitment</span>
+<h1>Applicants for <%= job.title %>
+</h1>
+<p>Review availability and past ratings before making a decision.</p>
+</section>
+<div class="people-list">
+  <% if (!applicants.length) { %>
+<p class="empty">No applications yet.</p>
+<% } %>
+  <% applicants.forEach(applicant => { %>
+    <article class="person-row applicant-row">
+<div>
+<span class="avatar" aria-hidden="true">
+<%= initials(applicant.name) %>
+</span>
+<strong>
+<a href="/profiles/<%= applicant.student_id %>">
+<%= applicant.name %>
+</a>
+</strong>
+<p>
+<strong>Programme / year:</strong> <%= applicant.programme || 'Not added' %> / <%= applicant.study_year || 'Not added' %>
+</p>
+<p>Skills: <%= applicant.skills || 'None added' %>
+<br>Availability: <%= applicant.schedule_availability %> &middot; Completed work: <%= applicant.completed_count %>
+</p>
+<span>
+<%= applicant.email %> · Rating <%= Number(applicant.average_rating).toFixed(1) %>/5 (<%= applicant.rating_count %>)</span>
+<p>
+<%= applicant.cover_note || 'No message provided.' %>
+</p>
+<span class="status <%= applicant.status %>">
+<%= statusLabel(applicant.status) %>
+</span>
+</div>
+      <div class="row-actions">
+        <% if (['pending','invited'].includes(applicant.status)) { %>
+<% if(applicant.status==='pending'){ %>
+<form method="POST" action="/applications/<%= applicant.id %>/accept" data-confirm="Accept this student? Their overlapping applications will be withdrawn.">
+<button class="btn">Accept</button>
+</form>
+<% }else{ %>
+<p class="small">Waiting for student confirmation.</p>
+<% } %>
+<form method="POST" action="/applications/<%= applicant.id %>/reject">
+<label>Rejection reason (optional)<input name="reason" maxlength="500" placeholder="Share a helpful reason">
+</label>
+<button class="btn secondary">Reject</button>
+</form>
+<% } %>
+        <% if (applicant.status === 'accepted') { %>
+<form method="POST" action="/applications/<%= applicant.id %>/start">
+<button class="btn">Start work</button>
+</form>
+<% } %>
+<% if (['accepted','in_progress'].includes(applicant.status)) { %>
+<form method="POST" action="/applications/<%= applicant.id %>/complete">
+<button class="btn">Mark Completed</button>
+</form>
+<% } %>
+        <% if (applicant.status === 'completed') { %>
+<form class="rating-form" method="POST" action="/applications/<%= applicant.id %>/rate">
+<label>Rating<select name="score">
+<option value="5">5 Excellent</option>
+<option value="4">4 Good</option>
+<option value="3">3 Average</option>
+<option value="2">2 Fair</option>
+<option value="1">1 Poor</option>
+</select>
+</label>
+<label>Written feedback<input name="comment" placeholder="Feedback" maxlength="500">
+</label>
+<button class="btn">Rate</button>
+</form>
+<% } %>
+      </div>
+    </article>
+  <% }) %>
+</div>
+<%- include('../partials/footer') %>

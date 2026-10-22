@@ -1,0 +1,44 @@
+<%- include('partials/header') %>
+<div class="dashboard-head">
+<div>
+<span class="eyebrow">Stay in the loop</span>
+<h1>Notifications</h1>
+<p>Application updates and account decisions, all in one place.</p>
+</div>
+<form method="POST" action="/notifications/read-all">
+<button class="btn secondary">Mark all as read</button>
+</form>
+</div>
+<div class="notification-list">
+<% if(!notifications.length){ %>
+<div class="empty-state">
+<h2>You are all caught up</h2>
+<p>New application and account updates will appear here.</p>
+<a class="btn secondary" href="/dashboard">Back to dashboard</a>
+</div>
+<% } %>
+<% notifications.forEach(n=>{ %>
+<article class="notification <%= n.is_read ? 'read' : 'unread' %>">
+<div>
+<span class="tag">
+<%= n.category %>
+</span> <span class="small">
+<%= n.is_read ? 'Read' : 'Unread' %>
+</span>
+<h2>
+<a href="<%= n.href %>">
+<%= n.message %>
+</a>
+</h2>
+<time datetime="<%= new Date(n.created_at).toISOString() %>">
+<%= dateTime(n.created_at) %> &middot; Bhutan time</time>
+</div>
+<% if(!n.is_read){ %>
+<form method="POST" action="/notifications/<%= n.id %>/read">
+<button class="btn secondary">Mark as read</button>
+</form>
+<% } %>
+</article>
+<% }) %>
+</div>
+<%- include('partials/footer') %>

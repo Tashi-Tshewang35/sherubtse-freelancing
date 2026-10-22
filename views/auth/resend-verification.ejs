@@ -1,0 +1,26 @@
+<%- include('../partials/header') %>
+<section class="auth-card">
+  <span class="eyebrow">Activate your account</span>
+<h1>Resend verification email</h1>
+  <p>Enter the email and password you used to register. A new link lasts 24 hours and replaces your previous link.</p>
+  <form method="POST" action="/resend-verification" class="stack-form">
+    <label>Email address<input type="email" name="email" autocomplete="email" required maxlength="150">
+</label>
+    <label>Password<input type="password" name="password" autocomplete="current-password" required>
+</label>
+    <button class="btn" type="submit">Resend verification email</button>
+  </form>
+  <p class="auth-switch">
+<a href="/login">Back to login</a>
+</p>
+  <div class="auth-switch">
+    <h2>Already received an email?</h2>
+    <p>If its link will not open, paste the complete link here to verify using this website.</p>
+    <form method="POST" action="/verify-link" class="stack-form">
+      <label>Verification link<input type="text" name="verificationLink" placeholder="Paste the link from your email" autocomplete="off" required maxlength="2048">
+</label>
+      <button class="btn secondary" type="submit">Verify my email</button>
+    </form>
+  </div>
+</section>
+<%- include('../partials/footer') %>

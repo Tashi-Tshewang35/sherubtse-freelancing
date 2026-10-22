@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="80 50 310 380" role="img" aria-labelledby="title">
+  <title id="title">Sherubtse Freelancing student and briefcase logo</title>
+  <defs>
+    <linearGradient id="navy" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#064489"/>
+      <stop offset="1" stop-color="#002b6b"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" y1="1" x2="1" y2="0">
+      <stop stop-color="#0099f5"/>
+      <stop offset="1" stop-color="#006de5"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#navy)" d="M192 90 264 57 344 88 303 109Q267 80 232 109Z"/>
+  <path stroke="#003774" stroke-width="6" d="M337 90V122"/>
+  <circle fill="#003774" cx="337" cy="130" r="11"/>
+  <circle fill="url(#navy)" cx="268" cy="141" r="42"/>
+  <path fill="url(#blue)" d="M366 148C380 205 337 239 282 245 258 248 244 250 225 234 193 245 171 270 166 292L153 287C164 229 199 202 247 194 301 189 345 181 366 148Z"/>
+  <path fill="url(#navy)" d="M224 235C211 269 250 278 284 285 344 298 373 308 376 344 379 379 354 403 320 414 351 376 330 350 288 329 242 307 200 294 204 265 207 251 214 242 224 235Z"/>
+  <path fill="url(#blue)" d="M226 235C239 253 259 264 307 273 268 267 244 257 226 235Z"/>
+  <path fill="url(#navy)" d="M307 346C333 381 310 417 261 420 232 422 204 418 174 412 228 399 272 376 307 346Z"/>
+  <g transform="rotate(14 151 326)">
+    <path fill="none" stroke="#ff8000" stroke-width="10" d="M132 295V283Q132 274 142 274H160Q170 274 170 284V295"/>
+    <rect fill="#ff8900" x="106" y="292" width="94" height="77" rx="14"/>
+    <path fill="#ff7900" d="M106 319Q153 337 200 319V309Q200 292 186 292H120Q106 292 106 309Z"/>
+    <path fill="none" stroke="#743300" stroke-width="2" d="M107 321Q151 337 199 321"/>
+    <rect fill="#ff9700" stroke="#743300" stroke-width="2" x="145" y="319" width="17" height="25" rx="4"/>
+  </g>
+</svg>

@@ -1,0 +1,14 @@
+node_modules
+.env
+.env.*
+.git
+.codex
+.agents
+.aws
+tests
+npm-debug.log*
+
+# Keep database backups and generated delivery/browser files out of images.
+backups
+delivery
+.cache

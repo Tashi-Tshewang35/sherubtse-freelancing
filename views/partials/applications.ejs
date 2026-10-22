@@ -1,0 +1,82 @@
+<div class="table-wrap" role="region" aria-label="Applications" tabindex="0">
+<table class="application-table">
+<thead>
+<tr>
+<th scope="col">Work / employer</th>
+<th scope="col">Applied</th>
+<th scope="col">Schedule and agreed wage</th>
+<th scope="col">Progress</th>
+</tr>
+</thead>
+<tbody>
+<% if(!applications.length){ %>
+<tr>
+<td colspan="4">
+<div class="empty-state">
+<h3>Your next chapter starts here</h3>
+<p>No applications yet. Explore work and introduce yourself.</p>
+<a class="btn secondary" href="/jobs">Find Work</a>
+</div>
+</td>
+</tr>
+<% } %>
+<% applications.forEach(a=>{ %>
+<tr>
+<td>
+<a href="/jobs/<%= a.job_id %>">
+<%= a.title %>
+</a>
+<br>
+<%= a.employer_name %>
+</td>
+<td>
+<%= dateTime(a.created_at) %>
+</td>
+<td>
+<%= dateTime(a.start_at) %>
+<br>to <%= dateTime(a.end_at) %>
+<br>Nu. <%= a.wage_rate %> / <%= a.wage_unit %>
+</td>
+<td>
+<span class="status <%= a.status %>">
+<%= a.status==='withdrawn' && (a.decision_note||'').startsWith('Automatically') ? 'Automatically withdrawn' : statusLabel(a.status) %>
+</span>
+<% if(['pending','accepted','in_progress','completed'].includes(a.status)){ const steps=['pending','accepted','in_progress','completed']; const position=steps.indexOf(a.status); %>
+<ol class="progress-steps" aria-label="Application progress">
+<% steps.forEach((step,index)=>{ %>
+<li class="<%= index<position ? 'done' : index===position ? 'current' : '' %>" <%- index===position ? 'aria-current="step"' : '' %>>
+<%= statusLabel(step) %>
+</li>
+<% }) %>
+</ol>
+<% } %>
+<% if(a.status==='withdrawn'){ %>
+<p class="small">Withdrawn by you, a posting cancellation or a conflicting confirmed schedule.</p>
+<% } %>
+<% if(a.decision_note){ %>
+<p>
+<%= a.decision_note %>
+</p>
+<% } %>
+<% if(allowWithdraw && a.status==='pending'){ %>
+<form method="POST" action="/applications/<%= a.id %>/withdraw" data-confirm="Withdraw this application?">
+<button class="btn secondary">Withdraw</button>
+</form>
+<% } %>
+<% if(allowWithdraw && a.status==='invited'){ %>
+<p class="small">Confirming withdraws overlapping pending applications and invitations. Your schedule becomes unavailable for this time.</p>
+<div class="row-actions">
+<form method="POST" action="/applications/<%= a.id %>/confirm" data-confirm="Confirm this invitation and withdraw overlapping applications?">
+<button class="btn">Confirm invitation</button>
+</form>
+<form method="POST" action="/applications/<%= a.id %>/decline">
+<button class="btn secondary">Decline</button>
+</form>
+</div>
+<% } %>
+</td>
+</tr>
+<% }) %>
+</tbody>
+</table>
+</div>

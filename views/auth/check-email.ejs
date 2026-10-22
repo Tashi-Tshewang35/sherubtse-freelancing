@@ -1,0 +1,14 @@
+<%- include('../partials/header') %>
+<section class="auth-card center">
+  <div class="success-icon">✉</div>
+  <h1>Check your email</h1>
+<p>A verification link was sent to <strong>
+<%= email %>
+</strong>.</p>
+  <p>Open the link within 24 hours, then log in. Check your spam folder if the message is missing.</p>
+  <p>
+<a href="/resend-verification">Resend verification email</a>
+</p>
+  <a class="btn secondary" href="/login">Back to Login</a>
+</section>
+<%- include('../partials/footer') %>

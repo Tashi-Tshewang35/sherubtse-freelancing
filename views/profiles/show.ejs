@@ -1,0 +1,191 @@
+<%- include('../partials/header') %>
+<section class="profile-head">
+<div class="identity">
+<span class="avatar" aria-hidden="true">
+<%= initials(profile.name) %>
+</span>
+<div>
+<span class="eyebrow">Community profile</span>
+<h1>
+<%= profile.name %>
+</h1>
+<p>
+<%= profile.email %>
+</p>
+<span class="status">
+<%= profile.is_verified ? 'Verified' : 'Unverified' %>
+</span>
+</div>
+</div>
+</section>
+<% if(profile.is_student){ %>
+<section class="panel">
+<h2>Student profile</h2>
+<p>Student number: <%= profile.student_number || profile.email.slice(0,8) %> | Availability: <%= profile.availability_status %>
+</p>
+<p>
+<%= profile.bio || 'No biography yet.' %>
+</p>
+<p>
+<strong>Programme / year:</strong> <%= profile.programme || 'Not added' %> / <%= profile.study_year || 'Not added' %>
+</p>
+<p>
+<strong>Contact:</strong> <%= profile.contact || 'Not added' %>
+</p>
+<p>
+<strong>Preferred working hours:</strong> <%= profile.preferred_hours || 'Not added' %>
+</p>
+<p class="work-description">
+<strong>Work experience:</strong> <%= profile.experience || 'Not added' %>
+</p>
+<p>
+<strong>Completed work:</strong> <%= applications.filter(a=>a.status==='completed').length %>
+</p>
+<p>Skills: <%= profile.skills.map(s=>s.name).join(', ') || 'No skills added.' %>
+</p>
+<p>Average rating: <%= Number(profile.average_rating).toFixed(1) %>/5 (<%= profile.rating_count %> reviews)</p>
+<% if(own){ %>
+<form action="/profile/student" method="POST" class="stack-form">
+<label>Full name<input name="name" value="<%= profile.name %>" required maxlength="100">
+</label>
+<div class="form-grid">
+<label>Programme<input name="programme" value="<%= profile.programme || '' %>" maxlength="120">
+</label>
+<label>Year of study<input name="studyYear" value="<%= profile.study_year || '' %>" maxlength="30" placeholder="For example, Year 2">
+</label>
+<label>Contact information<input name="contact" value="<%= profile.contact || '' %>" maxlength="100" placeholder="Phone or preferred contact">
+</label>
+<label>Preferred working hours<input name="preferredHours" value="<%= profile.preferred_hours || '' %>" maxlength="250" placeholder="For example, weekends and evenings">
+</label>
+</div>
+<label>Work experience<textarea name="experience" maxlength="1500" rows="3">
+<%= profile.experience || '' %>
+</textarea>
+</label>
+<label>Short biography<textarea name="bio" maxlength="1000">
+<%= profile.bio || '' %>
+</textarea>
+</label>
+<fieldset>
+<legend>Work skills: select all that apply</legend>
+<div class="skills-grid">
+<% skills.forEach(s=>{ %>
+<label class="skill-choice">
+<input type="checkbox" name="skills" value="<%= s.id %>" <%= profile.skills.some(p=>p.id===s.id)?'checked':'' %>>
+<%= s.name %>
+</label>
+<% }) %>
+</div>
+</fieldset>
+<label>Other skills (one per line; edit or remove lines to update)<textarea name="customSkills" maxlength="1000">
+<%= profile.skills.filter(s=>!s.predefined).map(s=>s.name).join('\n') %>
+</textarea>
+</label>
+<label>Availability<select name="availability">
+<% ['active','inactive'].forEach(s=>{ %>
+<option <%= profile.availability_status===s?'selected':'' %>>
+<%= s %>
+</option>
+<% }) %>
+</select>
+</label>
+<button class="btn">Save student profile</button>
+</form>
+<% } %>
+</section>
+<section class="panel">
+<h2>Applications and previous work</h2>
+<%- include('../partials/applications',{applications,allowWithdraw:own}) %>
+</section>
+<section class="panel">
+<h2>Rating history</h2>
+<% if(!ratings.length){ %>
+<p>No ratings yet.</p>
+<% } %>
+<% ratings.forEach(r=>{ %>
+<article class="rating-card">
+<strong>
+<%= r.score %>/5</strong>
+<p>
+<%= r.comment %>
+</p>
+<small>
+<%= new Date(r.createdAt).toLocaleString() %> &middot; Work #<%= r.jobId %>
+</small>
+</article>
+<% }) %>
+</section>
+<section class="panel">
+<h2>Application status history</h2>
+<% history.forEach(h=>{ %>
+<p>
+<%= h.title %> &middot; <span class="status <%= h.status %>">
+<%= h.status %>
+</span> <%= new Date(h.changed_at).toLocaleString() %>
+</p>
+<% }) %>
+</section>
+<% } %>
+<% if(profile.is_employer){ %>
+<section class="panel">
+<h2>Employer profile</h2>
+<p>Approval: <span class="status">
+<%= profile.employer_status %>
+</span> &middot; Workers recruited: <%= recruited %>
+</p>
+<span class="avatar" aria-hidden="true">
+<%= initials(profile.business_name || profile.name) %>
+</span>
+<h3>
+<%= profile.business_name || 'Business profile not yet completed' %>
+</h3>
+<p>
+<%= profile.custom_type || profile.employer_type || '' %>
+</p>
+<p>
+<%= profile.description || '' %>
+</p>
+<p>
+<%= profile.location || '' %> &middot; <%= profile.contact_number || '' %>
+</p>
+<% if(own){ %>
+<form method="POST" action="/profile/employer" class="form-grid">
+<label>Full name<input name="name" value="<%= profile.name %>" required maxlength="100">
+</label>
+<label>Business or organisation name<input name="businessName" value="<%= profile.business_name || '' %>" required maxlength="150">
+</label>
+<label>Employer type<select name="typeId" id="employerType">
+<% types.forEach(t=>{ %>
+<option value="<%= t.id %>" <%= t.id===profile.type_id?'selected':'' %>>
+<%= t.name %>
+</option>
+<% }) %>
+</select>
+</label>
+<label>Custom type (required for Other)<input name="customType" maxlength="80" value="<%= profile.custom_type || '' %>">
+</label>
+<label>Location<input name="location" required maxlength="150" value="<%= profile.location || '' %>">
+</label>
+<label>Contact number<input name="contactNumber" required maxlength="30" value="<%= profile.contact_number || '' %>">
+</label>
+<label class="span-2">Business description<textarea name="description" maxlength="1000">
+<%= profile.description || '' %>
+</textarea>
+</label>
+<button class="btn span-2">Save employer profile</button>
+</form>
+<% } %>
+</section>
+<section class="panel">
+<h2>Posted work and recruitment history</h2>
+<% jobs.forEach(j=>{ %>
+<p>
+<a href="/jobs/<%= j.id %>">
+<%= j.title %>
+</a> <span class="status <%= j.status %>">
+<%= j.status %>
+</span> &middot; <%= j.applicant_count %> applications</p>
+<% }) %>
+</section>
+<% } %>
+<%- include('../partials/footer') %>

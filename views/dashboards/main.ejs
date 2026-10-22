@@ -1,0 +1,300 @@
+<%- include('../partials/header') %>
+<section class="dashboard-head">
+<div class="identity">
+<span class="avatar" aria-hidden="true">
+<%= initials(profile.name) %>
+</span>
+<div>
+<span class="eyebrow">Your community workspace</span>
+<h1>Hello, <%= profile.name.split(' ')[0] %>.</h1>
+<p>Make room for your next opportunity.</p>
+</div>
+</div>
+<div class="capabilities">
+<% if(profile.is_student){ %>
+<span class="tag">Verified student</span>
+<% } %>
+<% if(profile.is_employer){ %>
+<span class="tag">Employer: <%= profile.employer_status %>
+</span>
+<% } %>
+<% if(profile.is_employer && profile.employer_status==='approved'){ %>
+<a class="btn" href="/jobs/new">Post Work</a>
+<% } %>
+</div>
+</section>
+<% const totalApplicants=employerJobs.reduce((n,j)=>n+Number(j.applicant_count),0); %>
+<div class="stats-grid">
+<% const stats=profile.is_student ? [['Applications',studentApplications.length],['Accepted / in progress',studentApplications.filter(a=>['accepted','in_progress'].includes(a.status)).length],['Completed work',studentApplications.filter(a=>a.status==='completed').length],['Average rating',ratings.length ? (ratings.reduce((n,r)=>n+r.score,0)/ratings.length).toFixed(1)+'/5' : 'New']] : [['Active work',employerJobs.filter(j=>j.status==='open').length],['Closed work',employerJobs.filter(j=>['closed','cancelled'].includes(j.status)).length],['Completed placements',employerJobs.reduce((n,j)=>n+Number(j.completed_count||0),0)],['Applicants',totalApplicants]]; stats.forEach(([label,value])=>{ %>
+<div class="stat-card">
+<span>
+<%= label %>
+</span>
+<strong>
+<%= value %>
+</strong>
+</div>
+<% }) %>
+</div>
+<% if(profile.is_student && studentApplications.some(a=>a.status==='invited')){ %>
+<section class="panel">
+<span class="eyebrow">Your skills are needed</span>
+<h2>Urgent invitations</h2>
+<p>Review the wage and schedule before confirming. Confirmation withdraws overlapping pending applications and invitations.</p>
+<%- include('../partials/applications',{applications:studentApplications.filter(a=>a.status==='invited'),allowWithdraw:true}) %>
+</section>
+<% } %>
+<section class="dashboard-grid">
+<div class="panel">
+<div class="section-heading">
+<h2>
+<%= profile.is_student ? 'Upcoming work' : 'Business overview' %>
+</h2>
+<a class="text-link" href="/profile">View profile</a>
+</div>
+<% if(profile.is_student){ const upcoming=studentApplications.filter(a=>['accepted','in_progress'].includes(a.status)&&new Date(a.end_at)>new Date()); %>
+<% if(!upcoming.length){ %>
+<p class="empty">No upcoming work yet. Explore opportunities that fit your schedule.</p>
+<% } %>
+<% upcoming.slice(0,3).forEach(a=>{ %>
+<p>
+<a href="/jobs/<%= a.job_id %>">
+<%= a.title %>
+</a>
+<br>
+<span class="small">
+<%= dateTime(a.start_at) %> &middot; <%= a.employer_name %>
+</span>
+</p>
+<% }) %>
+<% } else { %>
+<h3>
+<%= profile.business_name || profile.name %>
+</h3>
+<p>Employer access: <strong>
+<%= profile.employer_status %>
+</strong>
+</p>
+<p>Accepted: <%= employerJobs.reduce((n,j)=>n+Number(j.accepted_count||0),0) %> &middot; Rejected: <%= employerJobs.reduce((n,j)=>n+Number(j.rejected_count||0),0) %>
+</p>
+<% } %>
+</div>
+<aside class="panel">
+<h2>Profile readiness</h2>
+<% const completed=profile.is_student ? [profile.name,profile.bio,profile.programme,profile.study_year,profile.skills && profile.skills.length,profile.preferred_hours] : [profile.name,profile.business_name,profile.location,profile.contact_number]; const percentage=Math.round(completed.filter(Boolean).length/completed.length*100); %>
+<label for="profileProgress">
+<%= percentage %>% complete</label>
+<progress class="profile-completion" id="profileProgress" value="<%= percentage %>" max="100">
+<%= percentage %>%</progress>
+<p class="small">A clear profile helps your community get to know you.</p>
+<a class="text-link" href="/profile">Complete your profile &#8594;</a>
+</aside>
+</section>
+
+<section class="panel calendar-panel" aria-label="Shared work calendar">
+  <div class="section-heading">
+<div>
+<span class="eyebrow">Schedule</span>
+<h2>Work calendar</h2>
+</div>
+<button type="button" id="calendarRefresh" class="btn secondary">Refresh</button>
+</div>
+  <% if(profile.is_student){ %>
+<p>Published work appears automatically when applications open. Draft, cancelled and unopened opportunities are hidden. Your application history stays visible.</p>
+<% } %>
+  <% if(profile.is_employer){ %>
+<p>Your postings appear here, including drafts and scheduled work. <%= profile.is_student ? 'You also see other employers’ open work through your student role.' : 'Other employers’ opportunities are hidden from employer-only accounts.' %>
+</p>
+<% } %>
+  <div class="calendar-toolbar">
+<button type="button" id="prevMonth" class="icon-button" aria-label="Previous month">&lsaquo;</button>
+<strong id="calendarTitle">
+</strong>
+<button type="button" id="nextMonth" class="icon-button" aria-label="Next month">&rsaquo;</button>
+<button type="button" id="calendarToday" class="btn secondary">Today</button>
+<label>Go to month<input type="month" id="calendarMonth">
+</label>
+</div>
+  <p class="calendar-legend">
+<% ['open','applied','invited','accepted','in_progress','completed','closed','personal','deadline'].forEach(status=>{ %>
+<span class="status <%= status %>">
+<%= status %>
+</span> <% }) %>
+<% if(profile.is_employer){ %>
+<span class="status owner">Your postings</span>
+<span class="status scheduled">Scheduled</span> <span class="status draft">Draft</span>
+<% } %>
+</p>
+  <p id="calendarMessage" class="small" role="status" aria-live="polite">Loading your calendar...</p>
+  <div class="calendar-scroll">
+<div id="calendar" class="calendar">
+</div>
+</div>
+  <div class="section-heading">
+<h3 id="agendaTitle">Work and tasks this month</h3>
+<button type="button" class="btn secondary" id="showMonthEvents" hidden>Show whole month</button>
+</div>
+<div id="calendarAgenda" class="calendar-agenda">
+</div>
+  <details class="calendar-task-form">
+<summary>Add a personal task</summary>
+<form id="taskForm" class="task-form">
+<label>Task title<input name="title" required maxlength="120">
+</label>
+<label>Start (Bhutan time)<input type="datetime-local" name="startAt" required>
+</label>
+<label>End (Bhutan time)<input type="datetime-local" name="endAt" required>
+</label>
+<button class="btn">Add Task</button>
+</form>
+</details>
+</section>
+
+<section class="dashboard-grid">
+  <div class="dashboard-main">
+
+
+    <% if (profile.is_student) { %>
+    <section class="panel">
+<div class="section-heading">
+<div>
+<span class="eyebrow">Applications</span>
+<h2>Your applications</h2>
+</div>
+<a href="/jobs">Find jobs</a>
+</div>
+      <%- include('../partials/applications',{applications:studentApplications,allowWithdraw:true}) %>
+    </section>
+
+    <section class="panel">
+<div class="section-heading">
+<div>
+<span class="eyebrow">Work reputation</span>
+<h2>Ratings from past work</h2>
+</div>
+</div>
+      <div class="rating-grid">
+<% if (!ratings.length) { %>
+<p class="empty">Ratings will appear after completed work.</p>
+<% } %>
+<% ratings.forEach(r => { %>
+<article class="rating-card">
+<div class="stars" aria-label="<%= r.score %> out of 5">
+<%= r.score %> / 5 stars</div>
+<p>
+<%= r.comment || 'No written feedback.' %>
+</p>
+<small>
+<%= new Date(r.createdAt).toLocaleDateString() %>
+</small>
+</article>
+<% }) %>
+</div>
+    </section>
+    <% } %>
+
+    <% if (profile.is_employer) { %>
+    <section class="panel">
+<div class="section-heading">
+<div>
+<span class="eyebrow">Employer</span>
+<h2>Your posted work</h2>
+</div>
+<% if (profile.employer_status === 'approved') { %>
+<a href="/jobs/new">Post work</a>
+<% } %>
+</div>
+      <% if (profile.employer_status === 'pending') { %>
+<p>Your employer request is waiting for administrator approval.</p>
+<% } %>
+      <% if (profile.employer_status === 'rejected') { %>
+<p>Your employer request was not approved. Contact the administrator for clarification.</p>
+<% } %>
+      <div class="people-list">
+<% if(!employerJobs.length){ %>
+<p class="empty">Your posted work will appear here.</p>
+<% } %>
+<% employerJobs.forEach(job => { %>
+<div class="person-row">
+<div>
+<strong>
+<a href="/jobs/<%= job.id %>">
+<%= job.title %>
+</a>
+</strong>
+<span>
+<%= job.status %> · <%= job.applicant_count %> applicants</span>
+</div>
+<a class="btn secondary" href="/jobs/<%= job.id %>/applicants">Applicants</a>
+</div>
+<% }) %>
+</div>
+    </section>
+    <% } %>
+  </div>
+
+  <aside class="dashboard-side">
+<section class="panel">
+<div class="section-heading">
+<h2>Notifications</h2>
+<a href="/notifications">View all</a>
+</div>
+<% if(!notifications.length){ %>
+<p class="empty">You are all caught up.</p>
+<% } %>
+<% notifications.slice(0,4).forEach(n=>{ %>
+<p>
+<a href="<%= n.href %>">
+<%= n.message %>
+</a>
+<br>
+<small>
+<%= n.is_read ? 'Read' : 'Unread' %> &middot; <%= dateTime(n.created_at) %>
+</small>
+</p>
+<% }) %>
+</section>
+<section class="panel">
+<h2>Quick links</h2>
+<nav class="quick-links" aria-label="Dashboard shortcuts">
+<a href="/jobs">Explore work</a>
+<a href="/profile">Edit your profile</a>
+<a href="#calendar">Open your calendar</a>
+<% if(user.isAdmin){ %>
+<a href="/admin">Review accounts</a>
+<% } %>
+</nav>
+</section>
+    <% if (profile.is_student) { %>
+<section class="panel">
+<h2>Availability</h2>
+<p>Your calendar is checked before recruitment. The manual status can temporarily hide you from urgent recruitment.</p>
+<form method="POST" action="/profile/availability" class="stack-form">
+<label>Recruitment availability<select name="status">
+<option value="active" <%= profile.availability_status === 'active' ? 'selected' : '' %>>Active</option>
+<option value="inactive" <%= profile.availability_status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+</select>
+</label>
+<button class="btn">Update</button>
+</form>
+</section>
+<% } %>
+    <section class="panel">
+<h2>Account access</h2>
+<ul class="plain-list">
+<li>Email verified</li>
+<li>
+<%= profile.is_student ? 'Student identity verified' : 'Not a student account' %>
+</li>
+<li>
+<%= profile.is_employer ? `Employer ${profile.employer_status}` : 'No employer access' %>
+</li>
+</ul>
+</section>
+  </aside>
+</section>
+<script src="/js/calendarDates.js?v=2">
+</script>
+<script src="/js/calendar.js?v=2">
+</script>
+<%- include('../partials/footer') %>

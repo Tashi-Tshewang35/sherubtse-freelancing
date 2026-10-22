@@ -1,0 +1,47 @@
+<article class="job-card" data-work-card data-search="<%= [job.title,job.employer_name,job.location,job.work_type].join(' ').toLowerCase() %>" data-type="<%= job.work_type %>" data-urgency="<%= job.urgency %>">
+<div class="card-top">
+<span class="tag">
+<%= job.work_type %>
+</span>
+<% if(job.urgency==='urgent'){ %>
+<span class="tag urgent">Urgent</span>
+<% }else{ %>
+<span class="open-indicator">Applications open</span>
+<% } %>
+</div>
+<h3>
+<a href="/jobs/<%= job.id %>">
+<%= job.title %>
+</a>
+</h3>
+<p class="business-line">
+<%= job.employer_name %> &middot; <%= job.location %>
+</p>
+<p class="wage">Nu. <%= Number(job.wage_rate).toLocaleString('en-GB') %>
+<small> / <%= job.wage_unit %>
+</small>
+</p>
+<dl>
+<div>
+<dt>Schedule</dt>
+<dd>
+<%= new Date(job.start_at).toLocaleString('en-GB',{timeZone:'Asia/Thimphu',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) %>
+<br>to <%= new Date(job.end_at).toLocaleString('en-GB',{timeZone:'Asia/Thimphu',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) %>
+</dd>
+</div>
+<div>
+<dt>Workers needed</dt>
+<dd>
+<%= job.workers_needed %>
+</dd>
+</div>
+<div>
+<dt>Apply by</dt>
+<dd>
+<%= new Date(job.application_closes_at).toLocaleString('en-GB',{timeZone:'Asia/Thimphu',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) %>
+</dd>
+</div>
+</dl>
+<a class="text-link card-link" href="/jobs/<%= job.id %>">View opportunity <span aria-hidden="true">&#8599;</span>
+</a>
+</article>

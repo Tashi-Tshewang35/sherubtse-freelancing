@@ -1,0 +1,17 @@
+node_modules/
+.env
+.env.*
+!.env.example
+!.env.production.example
+!.env.test.example
+.aws/
+.codex/
+.agents/
+coverage/
+npm-debug.log*
+.DS_Store
+
+backups/
+
+.cache/
+delivery/
