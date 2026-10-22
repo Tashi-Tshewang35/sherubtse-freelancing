@@ -1,4 +1,4 @@
-require('dotenv').config();
+if (process.env.NODE_ENV !== 'test') require('dotenv').config();
 process.env.TZ = 'Asia/Thimphu';
 require('./config/production').validateProduction();
 
@@ -8,13 +8,23 @@ const session = require('express-session');
 const MongoSessionStore = require('./config/sessionStore');
 const indexRoutes = require('./routes/index');
 const apiRoutes = require('./routes/api');
-const { connectMongo } = require('./config/mongo');
 
 const app = express();
 const production = process.env.NODE_ENV === 'production';
 app.disable('x-powered-by');
 if (production) app.set('trust proxy', Number(process.env.TRUST_PROXY_HOPS || 1));
-app.get('/health', (req, res) => res.json({ status: 'ok' }));
+// Small headers without adding another framework or hiding application errors.
+app.use((req, res, next) => {
+  res.set({
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+    'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+  });
+  if (production) res.set('Strict-Transport-Security', 'max-age=31536000');
+  next();
+});
+app.get('/health', (req, res) => res.json({ status: 'ok', application: 'Sherubtse Freelancing' }));
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -56,29 +66,5 @@ app.use((err, req, res, next) => {
   res.status(500).render('error', { title: 'Error', message: 'Something went wrong. Please try again.' });
 });
 
-const port = Number(process.env.PORT || 3000);
-const host = process.env.HOST || '0.0.0.0';
-
-async function start() {
-  await require('./config/checkSchema').checkSchema();
-  await connectMongo();
-  return new Promise((resolve, reject) => {
-    const server = app.listen(port, host, () => {
-      console.log(`Sherubtse Freelancing running at ${process.env.APP_URL || `http://localhost:${port}`} (website and email verification)`);
-      resolve(server);
-    });
-    server.once('error', error => {
-      if (error.code === 'EADDRINUSE') {
-        reject(new Error(`Port ${port} is already in use. Open the running app or stop its server before restarting.`));
-      } else reject(error);
-    });
-  });
-}
-
-if (require.main === module) {
-  start().catch(error => {
-    console.error('Startup failed:', error.message);
-    process.exit(1);
-  });
-}
-module.exports = { app, start };
+// Importing this module never connects to MongoDB or opens an HTTP listener.
+module.exports = app;

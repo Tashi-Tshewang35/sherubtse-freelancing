@@ -1,5 +1,4 @@
-require('dotenv').config();
-const test=require('node:test');const assert=require('node:assert/strict');const fs=require('fs');
+const assert=require('node:assert/strict');const fs=require('fs');
 const db=require('../config/db');const Profile=require('../models/Profile');const Job=require('../models/Job');const Application=require('../models/Application');const Calendar=require('../models/Calendar');
 const {isOpen,canView,dateInput}=require('../config/workRules');
 test('application boundaries, employer-only visibility and dual roles',()=>{

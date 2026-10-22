@@ -1,10 +1,11 @@
+const { isValidRating } = require('../utils/validators');
 const db = require('../config/db');
 const Rating = require('../models/Rating');
 
 exports.create = async (req, res, next) => {
   try {
     const score = Number(req.body.score);
-    if (!Number.isInteger(score) || score < 1 || score > 5) {
+    if (!isValidRating(req.body.score)) {
       req.session.error = 'Rating must be between 1 and 5.';
       return res.redirect('/dashboard');
     }

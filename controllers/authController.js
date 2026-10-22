@@ -1,3 +1,4 @@
+const { isValidStudentEmail, isValidPassword } = require('../utils/validators');
 const User = require('../models/User');
 const { sendVerificationEmail } = require('../config/mailer');
 const { createVerification } = require('../config/verification');
@@ -41,13 +42,13 @@ exports.signup = async (req, res) => {
       req.session.error = 'Enter your name, a valid email address, password and account type.';
       return res.redirect('/signup');
     }
-    if (password.length < 6 || Buffer.byteLength(password, 'utf8') > 72) {
+    if (!isValidPassword(password)) {
       req.session.error = 'Password must have at least 6 characters and fit within 72 bytes.';
       return res.redirect('/signup');
     }
     const normalizedEmail = email.trim().toLowerCase();
     if (['student', 'employee', 'both'].includes(accountType) &&
-        !/^\d{8}\.sherubtse@rub\.edu\.bt$/.test(normalizedEmail)) {
+        !isValidStudentEmail(normalizedEmail)) {
       req.session.error = 'Student and employee accounts require an email such as 07240057.sherubtse@rub.edu.bt';
       return res.redirect('/signup');
     }

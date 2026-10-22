@@ -1,5 +1,3 @@
-require('dotenv').config();
-const test = require('node:test');
 const assert = require('node:assert/strict');
 const crypto = require('crypto');
 const { validateProduction } = require('../config/production');

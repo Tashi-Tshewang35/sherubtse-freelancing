@@ -1,25 +1,16 @@
-require('dotenv').config();
-const test = require('node:test');
 const assert = require('node:assert/strict');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const db = require('../config/db');
 const { connectMongo, getMongoDb, closeMongo } = require('../config/mongo');
-const { app } = require('../app');
+const app = require('../app');
+const supertest = require('supertest');
 
 test('HTTP pages and profile, posting, application, recruitment, rating and admin workflows', async () => {
   const ids = [];
-  const cookies = [];
-  let server;
   try {
     await require('../config/checkSchema').checkSchema();
     await connectMongo();
-    if (!process.env.TEST_BASE_URL) {
-      server = await new Promise(resolve => {
-        const listener = app.listen(0, '127.0.0.1', () => resolve(listener));
-      });
-    }
-    const base = process.env.TEST_BASE_URL || `http://127.0.0.1:${server.address().port}`;
     const password = 'RouteTest123!';
     const hash = await bcrypt.hash(password, 10);
     async function account(student, employer, admin = false) {
@@ -30,26 +21,15 @@ test('HTTP pages and profile, posting, application, recruitment, rating and admi
         VALUES('HTTP workflow test',$1,$2,$3,$4,$5,true,$6) RETURNING id`,
         [email, hash, student, employer, admin, employer ? 'approved' : 'not_requested']);
       ids.push(user.id);
-      const response = await fetch(base + '/login', {
-        method: 'POST', body: new URLSearchParams({ email, password }), redirect: 'manual',
-      });
-      assert.equal(response.headers.get('location'), '/dashboard');
-      const cookie = response.headers.get('set-cookie').split(';')[0];
-      cookies.push(cookie);
-      return { id: user.id, cookie };
+      const agent = supertest.agent(app);
+      const response = await agent.post('/login').type('form').send({ email, password });
+      assert.equal(response.headers.location, '/dashboard');
+      return { id: user.id, agent };
     }
-    async function request(route, user, data) {
-      const headers = user ? { cookie: user.cookie } : {};
-      const options = { headers, redirect: 'manual' };
-      if (data) {
-        options.method = 'POST';
-        const body = new URLSearchParams();
-        for (const [key, value] of Object.entries(data)) {
-          for (const entry of [].concat(value)) body.append(key, entry);
-        }
-        options.body = body;
-      }
-      return fetch(base + route, options);
+    // An agent remembers login cookies, exactly as taught in Lab 9.
+    function request(route, user, data) {
+      const client = user ? user.agent : supertest(app);
+      return data ? client.post(route).type('form').send(data) : client.get(route);
     }
     const student = await account(true, false);
     const employer = await account(false, true);
@@ -60,7 +40,7 @@ test('HTTP pages and profile, posting, application, recruitment, rating and admi
       for (const route of ['/', '/jobs', '/dashboard', '/profile', '/api/calendar']) {
         const response = await request(route, user);
         assert.equal(response.status, 200, route);
-        if (route !== '/api/calendar') assert.ok(!(await response.text()).includes('Something went wrong'));
+        if (route !== '/api/calendar') assert.ok(!(response.text).includes('Something went wrong'));
       }
     }
     const skill = await db.one('SELECT id FROM skills WHERE predefined ORDER BY id LIMIT 1');
@@ -85,35 +65,35 @@ test('HTTP pages and profile, posting, application, recruitment, rating and admi
     const scheduledResponse = await request('/jobs', employer, {
       ...data, title: 'Future-opening calendar test', opensAt: localDate(now + 1800000),
     });
-    const scheduledId = Number(scheduledResponse.headers.get('location').split('/').at(-1));
-    let scheduledCalendar = await (await request('/api/calendar', employer)).json();
+    const scheduledId = Number(scheduledResponse.headers['location'].split('/').at(-1));
+    let scheduledCalendar = (await request('/api/calendar', employer)).body;
     assert.equal(scheduledCalendar.find(event => event.id === scheduledId).status, 'scheduled');
     for (const employee of [student, dual]) {
       const response = await request('/api/calendar', employee);
-      assert.equal(response.headers.get('cache-control'), 'no-store');
-      assert.ok(!(await response.json()).some(event => event.id === scheduledId));
+      assert.equal(response.headers['cache-control'], 'no-store');
+      assert.ok(!(response.body).some(event => event.id === scheduledId));
     }
     await db.none("UPDATE jobs SET application_opens_at=NOW()-INTERVAL '1 minute' WHERE id=$1", [scheduledId]);
     for (const employee of [student, dual]) {
-      const available = await (await request('/api/calendar', employee)).json();
+      const available = (await request('/api/calendar', employee)).body;
       assert.equal(available.find(event => event.id === scheduledId).status, 'open');
     }
-    assert.ok(!(await (await request('/api/calendar', other)).json()).some(event => event.id === scheduledId));
+    assert.ok(!((await request('/api/calendar', other)).body).some(event => event.id === scheduledId));
     await db.none("UPDATE jobs SET application_opens_at=NOW()-INTERVAL '3 minutes',application_closes_at=NOW()-INTERVAL '1 minute' WHERE id=$1", [scheduledId]);
-    assert.ok(!(await (await request('/api/calendar', student)).json()).some(event => event.id === scheduledId));
-    assert.equal((await (await request('/api/calendar', employer)).json()).find(event => event.id === scheduledId).status, 'closed');
+    assert.ok(!((await request('/api/calendar', student)).body).some(event => event.id === scheduledId));
+    assert.equal(((await request('/api/calendar', employer)).body).find(event => event.id === scheduledId).status, 'closed');
     const created = await request('/jobs', employer, data);
     assert.equal(created.status, 302);
-    const jobUrl = created.headers.get('location');
+    const jobUrl = created.headers['location'];
     const jobId = Number(jobUrl.split('/').at(-1));
     assert.equal((await request(jobUrl, employer)).status, 200);
     assert.equal((await request(jobUrl, student)).status, 200);
     assert.equal((await request(jobUrl, other)).status, 403);
     assert.equal((await request(jobUrl, dual)).status, 200);
     let response = await request('/api/calendar', other);
-    assert.ok(!(await response.json()).some(event => event.id === jobId && event.event_type === 'work'));
+    assert.ok(!(response.body).some(event => event.id === jobId && event.event_type === 'work'));
     response = await request('/api/calendar', dual);
-    assert.ok((await response.json()).some(event => event.id === jobId));
+    assert.ok((response.body).some(event => event.id === jobId));
     assert.equal((await request(jobUrl + '/apply', student, { coverNote: 'Ready to work' })).status, 302);
     const application = await db.one('SELECT id FROM applications WHERE job_id=$1 AND student_id=$2', [jobId, student.id]);
     assert.equal((await request(jobUrl + '/applicants', employer)).status, 200);
@@ -124,13 +104,13 @@ test('HTTP pages and profile, posting, application, recruitment, rating and admi
     assert.equal((await request('/applications/' + application.id + '/complete', employer, {})).status, 302);
     assert.equal((await request('/applications/' + application.id + '/rate', employer, { score: 5, comment: 'HTTP rating test' })).status, 302);
     response = await request('/profile', student);
-    assert.ok((await response.text()).includes('HTTP rating test'));
+    assert.ok((response.text).includes('HTTP rating test'));
     // Consent, conflict withdrawal and work progress use the existing HTTP endpoints.
     const inviteResponse = await request('/jobs', employer, { ...data, title: 'Invitation workflow test' });
-    const inviteUrl = inviteResponse.headers.get('location');
+    const inviteUrl = inviteResponse.headers['location'];
     const inviteJobId = Number(inviteUrl.split('/').at(-1));
     const overlapResponse = await request('/jobs', employer, { ...data, title: 'Overlapping application test' });
-    const overlapUrl = overlapResponse.headers.get('location');
+    const overlapUrl = overlapResponse.headers['location'];
     await request(overlapUrl + '/apply', dual, { coverNote: 'Will be withdrawn only after confirmation' });
     await request(inviteUrl + '/recruit', employer, { studentId: dual.id });
     const invitation = await db.one('SELECT id,status FROM applications WHERE job_id=$1 AND student_id=$2', [inviteJobId, dual.id]);
@@ -144,12 +124,12 @@ test('HTTP pages and profile, posting, application, recruitment, rating and admi
     assert.equal((await db.one('SELECT availability_status FROM users WHERE id=$1',[dual.id])).availability_status,'inactive');
     await request('/applications/' + invitation.id + '/start', employer, {});
     assert.equal((await db.one('SELECT status FROM applications WHERE id=$1', [invitation.id])).status, 'in_progress');
-    assert.equal((await (await request('/api/calendar', dual)).json()).find(event=>event.id===inviteJobId).status, 'in_progress');
+    assert.equal(((await request('/api/calendar', dual)).body).find(event=>event.id===inviteJobId).status, 'in_progress');
     await request('/applications/' + invitation.id + '/complete', employer, {});
     assert.equal((await db.one('SELECT status FROM applications WHERE id=$1', [invitation.id])).status, 'completed');
     assert.equal((await db.one('SELECT availability_status FROM users WHERE id=$1',[dual.id])).availability_status,'active');
     const declineResponse = await request('/jobs', employer, { ...data, title: 'Decline invitation test', startAt: localDate(now+172800000), endAt: localDate(now+176400000) });
-    const declineUrl = declineResponse.headers.get('location');
+    const declineUrl = declineResponse.headers['location'];
     await request(declineUrl + '/recruit', employer, { studentId: dual.id });
     const toDecline = await db.one('SELECT id FROM applications WHERE job_id=$1 AND student_id=$2', [Number(declineUrl.split('/').at(-1)), dual.id]);
     await request('/applications/' + toDecline.id + '/decline', dual, {});
@@ -163,10 +143,10 @@ test('HTTP pages and profile, posting, application, recruitment, rating and admi
     await request('/notifications/read-all', dual, {});
     assert.equal((await db.one('SELECT COUNT(*)::int AS count FROM notifications WHERE user_id=$1 AND NOT is_read', [dual.id])).count, 0);
     const draftResponse = await request('/jobs', employer, { ...data, status: 'draft', title: 'Draft </script> test' });
-    const draftUrl = draftResponse.headers.get('location');
+    const draftUrl = draftResponse.headers['location'];
     response = await request(draftUrl + '/edit', employer);
     assert.equal(response.status, 200);
-    const draftHtml=await response.text();
+    const draftHtml=response.text;
     assert.ok(draftHtml.includes('draftData'));
     const draftJson=draftHtml.match(/id="draftData">([\s\S]*?)<\/script>/)[1];
     assert.equal(JSON.parse(draftJson).title, 'Draft </script> test');
@@ -185,7 +165,6 @@ test('HTTP pages and profile, posting, application, recruitment, rating and admi
     await db.none("UPDATE users SET employer_status='rejected' WHERE id=$1", [other.id]);
     assert.equal((await request('/jobs/new', other)).status, 403);
   } finally {
-    if (server) await new Promise(resolve => server.close(resolve));
     if (ids.length) {
       await getMongoDb().collection('ratings').deleteMany({ employerId: { $in: ids } });
       await getMongoDb().collection('sessions').deleteMany({ 'session.user.id': { $in: ids } });

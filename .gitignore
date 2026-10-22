@@ -15,3 +15,9 @@ backups/
 
 .cache/
 delivery/
+
+# Test artifacts and locally exported database backups
+*.dump
+*.sql.gz
+*.pem
+*.key

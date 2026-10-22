@@ -1,5 +1,6 @@
 const pgp = require('pg-promise')();
-require('dotenv').config();
+if (process.env.NODE_ENV !== 'test') require('dotenv').config();
+else require('./testEnvironment').assertTestDatabases(process.env);
 
 const connection = process.env.DATABASE_URL ? { connectionString: process.env.DATABASE_URL } : {
   host: process.env.DB_HOST || 'localhost',

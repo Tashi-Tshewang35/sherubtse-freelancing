@@ -12,3 +12,9 @@ npm-debug.log*
 backups
 delivery
 .cache
+
+coverage
+docs
+.github
+utils/*.test.js
+jest*.js
