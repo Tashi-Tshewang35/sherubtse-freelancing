@@ -1,3 +1,4 @@
+const { emailProvider } = require('./email');
 function placeholder(value) {
   return !value || /^(your_|replace-|development-)/i.test(value.trim()) ||
     /\.example(?:[/:?#]|$)/i.test(value) || /https?:\/\/your[-_]/i.test(value);
@@ -12,7 +13,10 @@ function publicUrl(env) {
 function validateProduction(env = process.env) {
   if (env.NODE_ENV !== 'production') return;
   const errors = [];
-  for (const key of ['SESSION_SECRET', 'MONGODB_URI', 'GMAIL_USER', 'GMAIL_APP_PASSWORD']) {
+  let provider;
+  try { provider = emailProvider(env); } catch (error) { errors.push(error.message); }
+  const emailKeys = provider === 'resend' ? ['RESEND_API_KEY', 'EMAIL_FROM'] : ['GMAIL_USER', 'GMAIL_APP_PASSWORD'];
+  for (const key of ['SESSION_SECRET', 'MONGODB_URI', ...emailKeys]) {
     if (placeholder(env[key])) errors.push(`Set a real ${key} in the hosting environment.`);
   }
   if (!placeholder(env.SESSION_SECRET) && env.SESSION_SECRET.length < 32) {

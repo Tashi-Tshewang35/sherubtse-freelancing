@@ -26,6 +26,9 @@ function loadTestEnvironment() {
   process.env.MONGODB_URI ||= 'mongodb://127.0.0.1:27017';
   process.env.SESSION_SECRET = 'unit6-test-only-session-secret-not-for-production';
   process.env.APP_URL = 'http://localhost:3000';
+  process.env.EMAIL_PROVIDER = 'gmail';
+  process.env.RESEND_API_KEY = '';
+  process.env.EMAIL_FROM = '';
   process.env.GMAIL_USER = 'automated-tests@example.invalid';
   process.env.GMAIL_APP_PASSWORD = 'test-only-not-a-real-password';
   assertTestDatabases(process.env);

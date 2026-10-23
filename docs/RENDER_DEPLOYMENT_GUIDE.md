@@ -47,7 +47,9 @@ Enter actual values privately under Render → Environment. Use `.env.production
 | DB_HOST/DB_PORT/DB_NAME/DB_USER/DB_PASS | Hosted PostgreSQL details; alternatively DATABASE_URL |
 | DB_SSL | true for hosted PostgreSQL requiring TLS |
 | MONGODB_URI/MONGODB_DB | Atlas URI/application database |
-| GMAIL_USER/GMAIL_APP_PASSWORD | Sending Gmail account and Google App Password |
+| EMAIL_PROVIDER | resend for Render Free; gmail for an SMTP-capable host |
+| RESEND_API_KEY/EMAIL_FROM | Private Resend API key and sender on your verified domain |
+| GMAIL_USER/GMAIL_APP_PASSWORD | Required only when using gmail |
 | ADMIN_NAME/ADMIN_EMAIL/ADMIN_PASSWORD | Used when deliberately seeding the first administrator |
 
 Generate a private session secret with `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`; paste it only into secret settings. DB_PASS is the exact variable name, not DB_PASSWORD. URL-encode credentials in connection strings. Leave development `.env` unchanged.
@@ -66,9 +68,21 @@ Set Render's health-check path to `/health`. Check both build and runtime logs: 
 
 This is safe liveness JSON, not a public database diagnostic. Startup checks SQL schema and connects MongoDB before listening; exercise a database-backed route to check continued readiness after startup.
 
-## Gmail and hosting limits
+## Email on Render Free
 
-Madam's record uses a free service. Current Render Free blocks SMTP ports 25/465/587, so retaining Gmail/Nodemailer requires a service tier allowing SMTP. Free hosting without a mail-transport change would break real verification despite a successful deployment. An HTTPS mail provider is an alternative requiring a separate approved setup/change; it is not substituted silently here. Free services can sleep on inactivity. Check current limits before selecting/paying for a plan. [Render Free limits](https://render.com/docs/free).
+Render Free blocks SMTP ports 25/465/587. The app supports Resend over HTTPS without extra dependencies. Local Gmail remains supported. Set EMAIL_PROVIDER=resend explicitly on Render; configuring RESEND_API_KEY also selects Resend unless EMAIL_PROVIDER overrides it.
+
+1. Create a Resend account at https://resend.com and add a domain you control. Add the DNS records Resend supplies at your DNS provider and wait for verification. The shared onrender.com domain cannot be verified as your sending domain. The website can continue using its Render URL.
+2. Create a sending API key. Keep it private; never commit it or paste it into chat.
+3. Under Render service Environment, set EMAIL_PROVIDER=resend, RESEND_API_KEY to that private key, and EMAIL_FROM to a sender such as Sherubtse Freelancing <noreply@your-verified-domain.com>. Gmail credentials are not needed for this provider.
+4. Keep the existing hosted database connections and session secret. Leave APP_URL blank to use RENDER_EXTERNAL_URL, or set it to the actual public HTTPS origin.
+5. Deploy the updated source and environment settings. Register or request a fresh verification email, inspect the Resend dashboard delivery status, then open the link and log in.
+
+Resend's onboarding@resend.dev test sender can only send to the email address associated with your Resend account. It cannot verify arbitrary student or employer accounts. Production sending requires a verified domain. An accepted API request does not guarantee inbox placement; check delivery status and Spam.
+
+Provider failures keep the account unverified and permit retry through /resend-verification. There is no silent SMTP fallback. Automated tests use mocked delivery and never prove real inbox delivery.
+
+References: [Render Free limits](https://render.com/docs/free), [Resend domains](https://resend.com/docs/dashboard/domains/introduction), [Resend testing restrictions](https://resend.com/docs/knowledge-base/403-error-resend-dev-domain), [Resend email API](https://resend.com/docs/api-reference/emails/send-email).
 
 ## Admin setup and acceptance
 
