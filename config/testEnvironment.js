@@ -29,6 +29,7 @@ function loadTestEnvironment() {
   process.env.EMAIL_PROVIDER = 'gmail';
   process.env.RESEND_API_KEY = '';
   process.env.EMAIL_FROM = '';
+  for (const key of ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'GOOGLE_REFRESH_TOKEN']) process.env[key] = '';
   process.env.GMAIL_USER = 'automated-tests@example.invalid';
   process.env.GMAIL_APP_PASSWORD = 'test-only-not-a-real-password';
   assertTestDatabases(process.env);

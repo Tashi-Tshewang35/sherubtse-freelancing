@@ -13,7 +13,7 @@ function sourceFiles(folder) {
     return entry.isDirectory() ? sourceFiles(full) : [full];
   });
 }
-const secretKeys = ['DB_PASS', 'SESSION_SECRET', 'GMAIL_APP_PASSWORD', 'ADMIN_PASSWORD', 'DATABASE_URL', 'MONGODB_URI'];
+const secretKeys = ['RESEND_API_KEY', 'GOOGLE_CLIENT_SECRET', 'GOOGLE_REFRESH_TOKEN', 'DB_PASS', 'SESSION_SECRET', 'GMAIL_APP_PASSWORD', 'ADMIN_PASSWORD', 'DATABASE_URL', 'MONGODB_URI'];
 const local = fs.existsSync(path.join(root, '.env')) ? require('dotenv').parse(fs.readFileSync(path.join(root, '.env'))) : {};
 const secrets = secretKeys.filter(key => {
   const value = local[key];

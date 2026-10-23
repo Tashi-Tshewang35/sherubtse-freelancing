@@ -1,5 +1,6 @@
 const nodemailer = require('nodemailer');
 const { emailProvider } = require('./email');
+const { sendGmailApi } = require('./gmailApi');
 
 async function sendVerificationEmail(toEmail, token) {
   try {
@@ -8,7 +9,8 @@ async function sendVerificationEmail(toEmail, token) {
     const password = (process.env.GMAIL_APP_PASSWORD || '').replace(/\s/g, '');
     const apiKey = (process.env.RESEND_API_KEY || '').trim();
     const from = (process.env.EMAIL_FROM || '').trim();
-    if (provider === 'resend' ? (!apiKey || !from || apiKey.startsWith('your_')) :
+    if (provider === 'gmail-api' ? (!sender || ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'GOOGLE_REFRESH_TOKEN'].some(key => !process.env[key]?.trim())) :
+        provider === 'resend' ? (!apiKey || !from || apiKey.startsWith('your_')) :
         (!sender || !password || sender.startsWith('your_') || password.startsWith('your_'))) {
       throw Object.assign(new Error('Email configuration missing'), { code: 'EMAIL_CONFIG' });
     }
@@ -24,7 +26,9 @@ async function sendVerificationEmail(toEmail, token) {
       text: 'Verify your account within 24 hours: ' + link + '\nIf you did not register, ignore this email.',
       html: '<h2>Welcome to Sherubtse Freelancing</h2><p>Verify your email to activate your account. This link expires in 24 hours.</p><p><a href="' + safeLink + '">Verify my email</a></p><p>If you did not register, ignore this email.</p>',
     };
-    if (provider === 'resend') {
+    if (provider === 'gmail-api') {
+      await sendGmailApi({ ...message, from: { name: 'Sherubtse Freelancing', address: sender } });
+    } else if (provider === 'resend') {
       const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: { Authorization: 'Bearer ' + apiKey, 'Content-Type': 'application/json' },

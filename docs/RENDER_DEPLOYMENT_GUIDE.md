@@ -47,7 +47,8 @@ Enter actual values privately under Render → Environment. Use `.env.production
 | DB_HOST/DB_PORT/DB_NAME/DB_USER/DB_PASS | Hosted PostgreSQL details; alternatively DATABASE_URL |
 | DB_SSL | true for hosted PostgreSQL requiring TLS |
 | MONGODB_URI/MONGODB_DB | Atlas URI/application database |
-| EMAIL_PROVIDER | resend for Render Free; gmail for an SMTP-capable host |
+| EMAIL_PROVIDER | gmail-api for Render Free without a domain; resend with a verified domain; gmail for SMTP |
+| GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET/GOOGLE_REFRESH_TOKEN | Google OAuth credentials for gmail-api; also set GMAIL_USER |
 | RESEND_API_KEY/EMAIL_FROM | Private Resend API key and sender on your verified domain |
 | GMAIL_USER/GMAIL_APP_PASSWORD | Required only when using gmail |
 | ADMIN_NAME/ADMIN_EMAIL/ADMIN_PASSWORD | Used when deliberately seeding the first administrator |
@@ -69,6 +70,8 @@ Set Render's health-check path to `/health`. Check both build and runtime logs: 
 This is safe liveness JSON, not a public database diagnostic. Startup checks SQL schema and connects MongoDB before listening; exercise a database-backed route to check continued readiness after startup.
 
 ## Email on Render Free
+
+**Only have an onrender.com address?** Use Gmail API over HTTPS with your existing Gmail account. Follow [GMAIL_API_SETUP.md](GMAIL_API_SETUP.md). It requires one-time Google OAuth setup, not a purchased sending domain. The Resend instructions below apply only when you control a verified domain.
 
 Render Free blocks SMTP ports 25/465/587. The app supports Resend over HTTPS without extra dependencies. Local Gmail remains supported. Set EMAIL_PROVIDER=resend explicitly on Render; configuring RESEND_API_KEY also selects Resend unless EMAIL_PROVIDER overrides it.
 
