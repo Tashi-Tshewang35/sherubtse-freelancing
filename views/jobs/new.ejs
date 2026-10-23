@@ -50,14 +50,14 @@
 <fieldset class="form-section">
 <legend>3. Applications &amp; work schedule</legend>
 <div class="form-grid">
-<label>Application opening date and time<input type="datetime-local" name="opensAt" value="<%= new Date(Date.now()+6*60*60*1000).toISOString().slice(0,16) %>" required>
+<label>Application opening date and time<input type="text" data-schedule-date placeholder="DD/MM/YYYY hh:mm AM/PM" maxlength="19" title="Use DD/MM/YYYY hh:mm AM/PM, for example 23/10/2026 02:30 PM" name="opensAt" value="<%= dateTime(new Date()).replace(',', '') %>" required>
 </label>
-    <label>Application closing date and time<input type="datetime-local" name="closesAt" required>
+    <label>Application closing date and time<input type="text" data-schedule-date placeholder="DD/MM/YYYY hh:mm AM/PM" maxlength="19" title="Use DD/MM/YYYY hh:mm AM/PM, for example 23/10/2026 02:30 PM" name="closesAt" required>
 </label>
     <p class="span-2">All dates and times use Bhutan time (UTC+06:00). Opening defaults to now so published work appears immediately in employee calendars. A future opening keeps it hidden until that time. Applications must close by the work start.</p>
-    <label>Start date and time<input type="datetime-local" name="startAt" required>
+    <label>Start date and time<input type="text" data-schedule-date placeholder="DD/MM/YYYY hh:mm AM/PM" maxlength="19" title="Use DD/MM/YYYY hh:mm AM/PM, for example 23/10/2026 02:30 PM" name="startAt" required>
 </label>
-    <label>End date and time<input type="datetime-local" name="endAt" required>
+    <label>End date and time<input type="text" data-schedule-date placeholder="DD/MM/YYYY hh:mm AM/PM" maxlength="19" title="Use DD/MM/YYYY hh:mm AM/PM, for example 23/10/2026 02:30 PM" name="endAt" required>
 </label>
     </div>
 </fieldset>

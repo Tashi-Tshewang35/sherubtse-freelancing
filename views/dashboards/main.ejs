@@ -141,9 +141,9 @@
 <form id="taskForm" class="task-form">
 <label>Task title<input name="title" required maxlength="120">
 </label>
-<label>Start (Bhutan time)<input type="datetime-local" name="startAt" required>
+<label>Start (Bhutan time)<input type="text" data-schedule-date placeholder="DD/MM/YYYY hh:mm AM/PM" maxlength="19" title="Use DD/MM/YYYY hh:mm AM/PM, for example 23/10/2026 02:30 PM" name="startAt" required>
 </label>
-<label>End (Bhutan time)<input type="datetime-local" name="endAt" required>
+<label>End (Bhutan time)<input type="text" data-schedule-date placeholder="DD/MM/YYYY hh:mm AM/PM" maxlength="19" title="Use DD/MM/YYYY hh:mm AM/PM, for example 23/10/2026 02:30 PM" name="endAt" required>
 </label>
 <button class="btn">Add Task</button>
 </form>
@@ -185,7 +185,7 @@
 <%= r.comment || 'No written feedback.' %>
 </p>
 <small>
-<%= new Date(r.createdAt).toLocaleDateString() %>
+<%= date(r.createdAt) %>
 </small>
 </article>
 <% }) %>

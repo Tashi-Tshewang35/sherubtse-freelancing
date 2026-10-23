@@ -38,7 +38,7 @@ if (require.main === module) {
   }).catch(async error => {
     // Schema guidance is safe; database errors and URLs may contain credentials.
     console.error('Startup failed:', error.code === 'CONFIGURATION_ERROR' ? error.message :
-      error.code === 'EADDRINUSE' ? 'Port is already in use.' :
+      error.code === 'EADDRINUSE' ? `Port ${process.env.PORT || 3000} is already in use. Stop the other app server, then restart this one. Run only one npm start or npm run dev session.` :
       error.message?.startsWith('Database upgrade required:') ? error.message :
       'Check database connectivity, schema and required environment variables.');
     await closeDatabases().catch(() => {});

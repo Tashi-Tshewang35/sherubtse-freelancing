@@ -80,13 +80,23 @@ if (filters) {
   filters.addEventListener('reset', () => window.setTimeout(update, 0));
   update();
 }
+const scheduleValue = input => window.ScheduleDates.normalize(input.value);
+document.querySelectorAll('[data-schedule-date]').forEach(input => {
+  const validate = () => input.setCustomValidity(input.value && !scheduleValue(input) ? 'Enter DD/MM/YYYY hh:mm AM/PM, for example 23/10/2026 02:30 PM.' : '');
+  input.addEventListener('input', validate);
+  input.addEventListener('change', validate);
+});
 const posting = document.querySelector('form[data-posting]');
 if (posting) {
   const fields = posting.elements;
   const validate = () => {
-    fields.closesAt.setCustomValidity(fields.opensAt.value && fields.closesAt.value && fields.closesAt.value <= fields.opensAt.value ? 'Applications must close after they open.' : '');
-    fields.startAt.setCustomValidity(fields.closesAt.value && fields.startAt.value && fields.startAt.value < fields.closesAt.value ? 'Work must start on or after applications close.' : '');
-    fields.endAt.setCustomValidity(fields.startAt.value && fields.endAt.value && fields.endAt.value <= fields.startAt.value ? 'Work must end after it starts.' : '');
+    for (const name of ['opensAt', 'closesAt', 'startAt', 'endAt']) {
+      const input = fields[name];
+      input.setCustomValidity(input.value && !scheduleValue(input) ? 'Enter DD/MM/YYYY hh:mm AM/PM.' : '');
+    }
+    if (scheduleValue(fields.opensAt) && scheduleValue(fields.closesAt) && scheduleValue(fields.closesAt) <= scheduleValue(fields.opensAt)) fields.closesAt.setCustomValidity('Applications must close after they open.');
+    if (scheduleValue(fields.closesAt) && scheduleValue(fields.startAt) && scheduleValue(fields.startAt) < scheduleValue(fields.closesAt)) fields.startAt.setCustomValidity('Work must start on or after applications close.');
+    if (scheduleValue(fields.startAt) && scheduleValue(fields.endAt) && scheduleValue(fields.endAt) <= scheduleValue(fields.startAt)) fields.endAt.setCustomValidity('Work must end after it starts.');
     const review = document.getElementById('postingReview');
     if (review) review.textContent = `${fields.title.value || 'Your opportunity'}: Nu. ${fields.wageRate.value || '0'} per ${fields.wageUnit.value}, ${fields.workersNeeded.value} worker(s), ${fields.location.value || 'location to be added'}.`;
   };

@@ -110,7 +110,7 @@
 <%= r.comment %>
 </p>
 <small>
-<%= new Date(r.createdAt).toLocaleString() %> &middot; Work #<%= r.jobId %>
+<%= dateTime(r.createdAt) %> &middot; Work #<%= r.jobId %>
 </small>
 </article>
 <% }) %>
@@ -121,7 +121,7 @@
 <p>
 <%= h.title %> &middot; <span class="status <%= h.status %>">
 <%= h.status %>
-</span> <%= new Date(h.changed_at).toLocaleString() %>
+</span> <%= dateTime(h.changed_at) %>
 </p>
 <% }) %>
 </section>

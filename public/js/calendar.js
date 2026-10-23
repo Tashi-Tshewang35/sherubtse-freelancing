@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const labels = { open: 'Open', applied: 'Applied', accepted: 'Accepted', completed: 'Completed',
     deadline: 'Application deadline', invited: 'Invited', in_progress: 'Work in progress', closed: 'Closed', scheduled: 'Scheduled', draft: 'Draft', cancelled: 'Cancelled', personal: 'Personal task' };
   const time = value => format(value, { hour: '2-digit', minute: '2-digit', hour12: true });
-  const dateTime = value => format(value, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+  const dateTime = value => format(value, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
   function element(tag, className, text) {
     const node = document.createElement(tag);
     if (className) node.className = className;
@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const visible = events.filter(event => selectedDay ? overlaps(event, selectedDay) :
       Array.from({ length: lastDay }, (_, i) => `${month}-${String(i + 1).padStart(2, '0')}`).some(day => overlaps(event, day)));
     document.getElementById('agendaTitle').textContent = selectedDay ?
-      `Work and tasks for ${format(selectedDay + 'T12:00:00+06:00', { day: 'numeric', month: 'long' })}` : 'Work and tasks this month';
+      `Work and tasks for ${format(selectedDay + 'T12:00:00+06:00', { day: '2-digit', month: '2-digit', year: 'numeric' })}` : 'Work and tasks this month';
     document.getElementById('showMonthEvents').hidden = !selectedDay;
     if (!visible.length) {
       agenda.appendChild(element('p', 'empty', 'No work or tasks for this selection. Open work in another month can be found using the month selector.'));

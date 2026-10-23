@@ -25,8 +25,8 @@
 <div>
 <dt>Schedule</dt>
 <dd>
-<%= new Date(job.start_at).toLocaleString('en-GB',{timeZone:'Asia/Thimphu',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) %>
-<br>to <%= new Date(job.end_at).toLocaleString('en-GB',{timeZone:'Asia/Thimphu',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) %>
+<%= dateTime(job.start_at) %>
+<br>to <%= dateTime(job.end_at) %>
 </dd>
 </div>
 <div>
@@ -38,7 +38,7 @@
 <div>
 <dt>Apply by</dt>
 <dd>
-<%= new Date(job.application_closes_at).toLocaleString('en-GB',{timeZone:'Asia/Thimphu',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) %>
+<%= dateTime(job.application_closes_at) %>
 </dd>
 </div>
 </dl>

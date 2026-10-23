@@ -28,14 +28,14 @@
 </p>
 <% } %>
 <% if(user && user.id===job.employer_id && job.status==='open' && new Date(job.application_opens_at)>new Date()){ %>
-<p class="calendar-notice">Published and scheduled. Employees will see this work when applications open on <%= new Date(job.application_opens_at).toLocaleString() %> (Bhutan time).</p>
+<p class="calendar-notice">Published and scheduled. Employees will see this work when applications open on <%= dateTime(job.application_opens_at) %> (Bhutan time).</p>
 <% } %>
 <p>Status: <span class="status <%= job.status %>">
 <%= job.status %>
 </span>
 </p>
-<p>Applications open: <%= new Date(job.application_opens_at).toLocaleString() %>
-<br>Applications close: <%= new Date(job.application_closes_at).toLocaleString() %>
+<p>Applications open: <%= dateTime(job.application_opens_at) %>
+<br>Applications close: <%= dateTime(job.application_closes_at) %>
 </p>
 <% if(application){ %>
 <p>Your application: <span class="status <%= application.status %>">
@@ -58,13 +58,13 @@
 <div>
 <span>Starts</span>
 <strong>
-<%= new Date(job.start_at).toLocaleString() %>
+<%= dateTime(job.start_at) %>
 </strong>
 </div>
 <div>
 <span>Ends</span>
 <strong>
-<%= new Date(job.end_at).toLocaleString() %>
+<%= dateTime(job.end_at) %>
 </strong>
 </div>
 </div>

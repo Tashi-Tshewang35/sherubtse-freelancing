@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js",
+    "dev": "nodemon --exec \"node -r ./config/development.js\" server.js",
     "seed:admin": "node scripts/seedAdmin.js",
     "migrate:verification": "node scripts/migrateVerification.js",
     "test": "jest --runInBand",

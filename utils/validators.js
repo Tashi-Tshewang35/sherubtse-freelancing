@@ -26,7 +26,7 @@ function timestamp(value) {
   if (value instanceof Date) return value.getTime();
   if (typeof value !== 'string' || !value) return NaN;
   // datetime-local values use Bhutan time; normalized ISO timestamps retain their offset.
-  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)) {
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value) || /^\d{2}\/\d{2}\/\d{4} /.test(value)) {
     const normalized = dateInput(value);
     return normalized ? new Date(normalized).getTime() : NaN;
   }

@@ -54,7 +54,7 @@ test('HTTP pages and profile, posting, application, recruitment, rating and admi
       name: 'HTTP employer', businessName: 'HTTP business', typeId: type.id,
       customType: 'Campus service', description: 'Test description', location: 'Kanglung', contactNumber: '12345678',
     })).status, 302);
-    function localDate(ms) { return new Date(ms + 6 * 3600000).toISOString().slice(0, 16); }
+    function localDate(ms) { return require('../public/js/dateTimeInput').display(ms); }
     const now = Date.now();
     const data = {
       title: 'HTTP test work', description: 'Test posting', workType: 'Cleaning', location: 'Kanglung',
