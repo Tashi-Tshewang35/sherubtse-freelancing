@@ -8,7 +8,10 @@ async function connectMongo() {
   if (database) return database;
   if (connecting) return connecting;
   connecting = (async () => {
-    client = new MongoClient(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017', { serverSelectionTimeoutMS: 5000 });
+    const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI ||
+      (process.env.NODE_ENV !== 'production' ? 'mongodb://127.0.0.1:27017' : null);
+    if (!mongoUri) throw Object.assign(new Error('Set MONGO_URI in the hosting environment.'), { code: 'CONFIGURATION_ERROR' });
+    client = new MongoClient(mongoUri, { serverSelectionTimeoutMS: 5000 });
     try {
       await client.connect();
       const selected = client.db(process.env.MONGODB_DB || 'sherubtse_freelance_feedback');

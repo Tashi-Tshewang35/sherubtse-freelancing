@@ -10,6 +10,7 @@ async function start() {
   mongo = require('./config/mongo');
   await require('./config/checkSchema').checkSchema();
   await mongo.connectMongo();
+  await require('./services/adminBootstrap').ensureAdmin();
   const port = Number(process.env.PORT || 3000);
   const host = process.env.HOST || '0.0.0.0';
   return new Promise((resolve, reject) => {
