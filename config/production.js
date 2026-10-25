@@ -18,8 +18,11 @@ function validateProduction(env = process.env) {
   const emailKeys = provider === 'resend' ? ['RESEND_API_KEY', 'EMAIL_FROM'] :
     provider === 'gmail-api' ? ['GMAIL_USER', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'GOOGLE_REFRESH_TOKEN'] :
     ['GMAIL_USER', 'GMAIL_APP_PASSWORD'];
-  for (const key of ['SESSION_SECRET', 'MONGODB_URI', ...emailKeys]) {
+  for (const key of ['SESSION_SECRET', ...emailKeys]) {
     if (placeholder(env[key])) errors.push(`Set a real ${key} in the hosting environment.`);
+  }
+  if (placeholder(env.MONGO_URI) && placeholder(env.MONGODB_URI)) {
+    errors.push('Set a real MONGO_URI (or the backwards-compatible MONGODB_URI) in the hosting environment.');
   }
   if (!placeholder(env.SESSION_SECRET) && env.SESSION_SECRET.length < 32) {
     errors.push('SESSION_SECRET must contain at least 32 characters.');
