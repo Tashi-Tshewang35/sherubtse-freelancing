@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#142e4c">
+<meta name="csrf-token" content="<%= typeof csrfToken === 'string' ? csrfToken : '' %>">
 <meta name="description" content="Student freelancing for Sherubtse College and the Kanglung community.">
 <title>
 <%= typeof title !== 'undefined' && title ? title : 'Home' %> | Sherubtse Freelancing</title>
@@ -33,6 +34,7 @@
 <a href="/dashboard">Dashboard</a>
 <a href="/profile">Profile</a>
 <a href="/notifications">Notifications</a>
+<% if(user.isStudent){ %><a href="/saved-jobs">Saved Jobs</a><% } %>
 <% if(user.isEmployer && user.employerStatus==='approved'){ %>
 <a class="nav-cta" href="/jobs/new">Post Work</a>
 <% } %>
@@ -40,6 +42,7 @@
 <a href="/admin">Admin</a>
 <% } %>
 <form class="inline-form" method="POST" action="/logout">
+<input type="hidden" name="_csrf" value="<%= typeof csrfToken==='string'?csrfToken:'' %>">
 <button class="nav-button">Log Out</button>
 </form>
 <% } else { %>

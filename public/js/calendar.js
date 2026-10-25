@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const agenda = document.getElementById('calendarAgenda');
   const picker = document.getElementById('calendarMonth');
   const labels = { open: 'Open', applied: 'Applied', accepted: 'Accepted', completed: 'Completed',
-    deadline: 'Application deadline', invited: 'Invited', in_progress: 'Work in progress', closed: 'Closed', scheduled: 'Scheduled', draft: 'Draft', cancelled: 'Cancelled', personal: 'Personal task' };
+    opening: 'Applications open', deadline: 'Application deadline', invited: 'Invited', in_progress: 'Work in progress', closed: 'Closed', scheduled: 'Scheduled', draft: 'Draft', cancelled: 'Cancelled', personal: 'Personal task' };
   const time = value => format(value, { hour: '2-digit', minute: '2-digit', hour12: true });
   const dateTime = value => format(value, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
   function element(tag, className, text) {
@@ -46,10 +46,10 @@ document.addEventListener('DOMContentLoaded', () => {
       card.appendChild(heading);
       card.appendChild(element('p', '', `Work schedule: ${dateTime(event.work_start || event.start)} - ${dateTime(event.work_end || event.end)}`));
       if (event.event_type === 'work') {
-        card.appendChild(element('p', '', `${event.employer_name} - ${event.location} ? Nu. ${event.wage_rate}/${event.wage_unit} - ${event.urgency}`));
+        card.appendChild(element('p', '', `${event.employer_name} - ${event.location} - Nu. ${event.wage_rate}/${event.wage_unit} - ${event.urgency}`));
         card.appendChild(element('p', '', `Applications: ${dateTime(event.application_opens_at)} - ${dateTime(event.application_closes_at)}`));
         card.appendChild(element('p', '', `Your application: ${event.application_status || 'Not applied'}${event.is_owner ? ' - Your posting' : ''}`));
-        if (event.status === 'scheduled') card.appendChild(element('p', 'calendar-notice', 'Employees will see this opportunity when applications open.'));
+        if (event.status === 'scheduled') card.appendChild(element('p', 'calendar-notice', 'Published work is visible now. Applications will open on the scheduled date.'));
         if (event.status === 'draft') card.appendChild(element('p', 'calendar-notice', 'Publish this draft to make it available when applications open.'));
       } else {
         const remove = element('button', 'btn secondary', 'Remove task');
@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
         remove.addEventListener('click', async () => {
           remove.disabled = true;
           try {
-            const response = await fetch(`/api/calendar/tasks/${event.id}`, { method: 'DELETE' });
+            const response = await fetch(`/api/calendar/tasks/${event.id}`, { method: 'DELETE', headers: { 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content } });
             if (!response.ok) throw new Error('Could not remove the task.');
             await loadEvents();
           } catch (error) { message.textContent = error.message; }
@@ -113,16 +113,17 @@ document.addEventListener('DOMContentLoaded', () => {
     loading = true;
     calendar.setAttribute('aria-busy', 'true');
     try {
-      const response = await fetch('/api/calendar', { cache: 'no-store' });
+      const response = await fetch('/api/calendar?mode=' + encodeURIComponent(calendar.dataset.mode || 'student'), { cache: 'no-store' });
       if (response.status === 401) throw new Error('Your session expired. Please log in again.');
       if (!response.ok) throw new Error('Calendar could not be refreshed. Use Refresh to try again.');
       const nextEvents = await response.json();
       if (!Array.isArray(nextEvents)) throw new Error('Calendar returned an invalid response.');
       events = nextEvents.flatMap(event => {
-        if (event.event_type !== 'work' || !event.application_closes_at || !['open','applied'].includes(event.status)) return [event];
+        if (event.event_type !== 'work' || !event.application_closes_at || !['open','applied','scheduled'].includes(event.status)) return [event];
         const deadline = { ...event, title: 'Apply by: ' + event.title, status: 'deadline', start: event.application_closes_at,
           end: new Date(new Date(event.application_closes_at).getTime() + 60000).toISOString(), milestone: true,
           work_start: event.start, work_end: event.end };
+        if(event.status==='scheduled')return [event,deadline,{...event,title:'Applications open: '+event.title,status:'opening',start:event.application_opens_at,end:new Date(new Date(event.application_opens_at).getTime()+60000).toISOString(),milestone:true,work_start:event.start,work_end:event.end}];
         return [event, deadline];
       });
       render();
@@ -147,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
     event.preventDefault();
     const submit = form.querySelector('button'); submit.disabled = true;
     try {
-      const response = await fetch('/api/calendar/tasks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.fromEntries(new FormData(form).entries())) });
+      const response = await fetch('/api/calendar/tasks', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content }, body: JSON.stringify(Object.fromEntries(new FormData(form).entries())) });
       if (!response.ok) {
         const data = await response.json(); throw new Error(data.error || 'Unable to add task.');
       }

@@ -5,7 +5,7 @@ const { createVerification } = require('../config/verification');
 
 function sessionUser(user) {
   return { id: user.id, name: user.name, email: user.email, isStudent: user.is_student,
-    isEmployer: user.is_employer, employerStatus: user.employer_status, isAdmin: user.is_admin };
+    isEmployer: user.is_employer, employerStatus: user.employer_status, isAdmin: user.is_admin, sessionVersion: user.session_version || 0 };
 }
 function fail(req, res, error, destination) {
   console.error('[Authentication] Request failed:', { code: error.code || 'UNKNOWN' });
@@ -43,13 +43,17 @@ exports.signup = async (req, res) => {
       return res.redirect('/signup');
     }
     if (!isValidPassword(password)) {
-      req.session.error = 'Password must have at least 6 characters and fit within 72 bytes.';
+      req.session.error = 'Password must have at least 8 characters and fit within 72 bytes.';
+      return res.redirect('/signup');
+    }
+    if (password !== req.body.confirmPassword) {
+      req.session.error = 'Passwords must match.';
       return res.redirect('/signup');
     }
     const normalizedEmail = email.trim().toLowerCase();
     if (['student', 'employee', 'both'].includes(accountType) &&
         !isValidStudentEmail(normalizedEmail)) {
-      req.session.error = 'Student and employee accounts require an email such as 07240057.sherubtse@rub.edu.bt';
+      req.session.error = 'Enter your full Sherubtse email: your 8-digit student number followed by .sherubtse@rub.edu.bt. All admission years are accepted.';
       return res.redirect('/signup');
     }
     const existing = await User.findByEmail(normalizedEmail);
@@ -57,7 +61,7 @@ exports.signup = async (req, res) => {
       if (!existing.is_verified && await User.verifyPassword(password, existing.password_hash)) {
         return await resend(req, res, existing);
       }
-      req.session.error = 'This email is registered. Log in or use Resend verification email.';
+      req.session.error = 'Unable to create this account. Try logging in, resetting your password or requesting verification.';
       return res.redirect('/signup');
     }
     const verification = createVerification();
@@ -66,7 +70,7 @@ exports.signup = async (req, res) => {
     return await deliver(req, res, user, verification);
   } catch (error) {
     if (error.code === '23505') {
-      req.session.error = 'This email is registered. Log in or resend your verification email.';
+      req.session.error = 'Unable to create this account. Try logging in, resetting your password or requesting verification.';
       return res.redirect('/signup');
     }
     return fail(req, res, error, '/signup');
@@ -98,8 +102,8 @@ exports.resendVerification = async (req, res) => {
       return res.redirect('/resend-verification');
     }
     const user = await User.findByEmail(email);
-    if (!user || !await User.verifyPassword(password, user.password_hash)) {
-      req.session.error = 'Incorrect email or password.';
+    if (!user || user.account_status !== 'active' || !await User.verifyPassword(password, user.password_hash)) {
+      req.session.error = 'Unable to log in. Check your details or request email verification.';
       return res.redirect('/resend-verification');
     }
     if (user.is_verified) {
@@ -128,12 +132,12 @@ exports.login = async (req, res) => {
       return res.redirect('/login');
     }
     const user = await User.findByEmail(email);
-    if (!user || !await User.verifyPassword(password, user.password_hash)) {
-      req.session.error = 'Incorrect email or password.';
+    if (!user || user.account_status !== 'active' || !await User.verifyPassword(password, user.password_hash)) {
+      req.session.error = 'Unable to log in. Check your details or request email verification.';
       return res.redirect('/login');
     }
     if (!user.is_verified) {
-      req.session.error = 'Verify your email before logging in. You can request a new verification email below.';
+      req.session.error = 'Unable to log in. Check your details or request email verification.';
       return res.redirect('/login');
     }
     await new Promise((resolve, reject) => req.session.regenerate(error => error ? reject(error) : resolve()));

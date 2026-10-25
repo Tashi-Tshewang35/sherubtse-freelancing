@@ -44,6 +44,7 @@
 </div>
 </aside>
 </section>
+<% if(typeof statistics!=='undefined'){ %><section class="stats-grid" aria-label="Platform statistics"><% [['Verified students',statistics.students],['Approved employers',statistics.employers],['Completed placements',statistics.completed]].forEach(([label,value])=>{ %><div class="stat-card"><span><%= label %></span><strong><%= value %></strong></div><% }) %></section><% } %>
 <section class="benefit-strip" aria-label="Our community commitments">
 <div>
 <span class="benefit-icon" aria-hidden="true">&#8599;</span>
@@ -123,4 +124,5 @@
 </div>
 <a class="btn" href="<%= user ? '/dashboard' : '/signup' %>">Start hiring &#8599;</a>
 </section>
+<section class="panel"><h2>A pathway for everyone</h2><div class="three-columns"><article><h3>Students</h3><p>Build your profile, find work around your studies and grow your reputation.</p><a href="/signup">Join as a student</a></article><article><h3>Local employers</h3><p>Post clear work and recruit verified students with the skills you need.</p><a href="/employer-responsibilities">Employer responsibilities</a></article><article><h3>Need a hand?</h3><p>Find answers, understand the rules and get support.</p><a href="/help">Visit the Help Centre</a></article></div></section><section class="panel"><h2>Common questions</h2><details><summary>How do payments work?</summary><p>Payments are handled directly between employer and employee. Agree wages and timing before work.</p></details><details><summary>Can I work and hire?</summary><p>Choose a combined account and switch dashboards with the same verified student identity.</p></details><p><a href="/faq">Read all FAQs</a> ? <a href="/contact">Contact support</a></p><p class="safety-note">Stay safe: never pay an advance fee, share passwords or accept unsafe work. Report concerns to administrators.</p></section>
 <%- include('partials/footer') %>

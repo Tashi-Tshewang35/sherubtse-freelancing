@@ -8,7 +8,7 @@ function fixtures() {
   const ids = [];
   return {
     password,
-    async connect() { assertTestDatabases(process.env); await connectMongo(); },
+    async connect() { assertTestDatabases(process.env); await connectMongo(); await getMongoDb().collection('rate_limits').deleteMany({}); },
     async account(student, employer, admin = false, approved = true) {
       const email = student ? String(80000000 + crypto.randomInt(9999999)) + '.sherubtse@rub.edu.bt' : crypto.randomUUID() + '@example.invalid';
       const user = await db.one(`INSERT INTO users(name,email,password_hash,is_student,is_employer,is_admin,is_verified,employer_status)
@@ -22,6 +22,8 @@ function fixtures() {
       try {
         if (ids.length) {
           await getMongoDb().collection('ratings').deleteMany({ employerId: { $in: ids } });
+          await db.none('DELETE FROM audit_records WHERE actor_id IN ($1:csv)',[ids]);
+          await db.none('DELETE FROM reports WHERE reporter_id IN ($1:csv) OR target_user_id IN ($1:csv)',[ids]);
           await db.none('DELETE FROM applications WHERE student_id IN ($1:csv) OR job_id IN (SELECT id FROM jobs WHERE employer_id IN ($1:csv))',[ids]);
           await db.none('DELETE FROM jobs WHERE employer_id IN ($1:csv)',[ids]);
           await db.none('DELETE FROM users WHERE id IN ($1:csv)',[ids]);

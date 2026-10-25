@@ -1,4 +1,4 @@
-<article class="job-card" data-work-card data-search="<%= [job.title,job.employer_name,job.location,job.work_type].join(' ').toLowerCase() %>" data-type="<%= job.work_type %>" data-urgency="<%= job.urgency %>">
+<article class="job-card" data-work-card data-search="<%= [job.title,job.employer_name,job.location,job.work_type,job.requirements].join(' ').toLowerCase() %>" data-type="<%= job.work_type %>" data-urgency="<%= job.urgency %>" data-location="<%= job.location.toLowerCase() %>" data-date="<%= new Date(new Date(job.start_at).getTime()+6*3600000).toISOString().slice(0,10) %>" data-created="<%= new Date(job.created_at || job.published_at).getTime() %>" data-closing="<%= new Date(job.application_closes_at).getTime() %>" data-wage="<%= Number(job.wage_rate) %>">
 <div class="card-top">
 <span class="tag">
 <%= job.work_type %>
@@ -14,7 +14,7 @@
 <%= job.title %>
 </a>
 </h3>
-<p class="business-line">
+<p class="small"><span class="status"><%= job.employer_status==='approved' ? 'Approved employer' : 'Employer approval pending' %></span> &middot; <%= jobState(job) %></p><p class="business-line">
 <%= job.employer_name %> &middot; <%= job.location %>
 </p>
 <p class="wage">Nu. <%= Number(job.wage_rate).toLocaleString('en-GB') %>
@@ -30,7 +30,7 @@
 </dd>
 </div>
 <div>
-<dt>Workers needed</dt>
+<dt>Working hours</dt><dd><%= Math.round((new Date(job.end_at)-new Date(job.start_at))/3600000*10)/10 %> hours</dd></div><div><dt>Skills</dt><dd><%= job.requirements || 'See work details' %></dd></div><div><dt>Workers needed</dt>
 <dd>
 <%= job.workers_needed %>
 </dd>

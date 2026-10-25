@@ -5,7 +5,9 @@ const path = require('path');
 const assert = require('node:assert/strict');
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 async function main() {
-  const target = await (await fetch('http://127.0.0.1:9223/json/new?about:blank', { method: 'PUT' })).json();
+  const browserBase='http://127.0.0.1:'+(process.env.BROWSER_DEBUG_PORT || 9223);
+  const previewBase='http://127.0.0.1:'+(process.env.PREVIEW_PORT || 3100);
+  const target = await (await fetch(browserBase+'/json/new?about:blank', { method: 'PUT' })).json();
   const socket = new WebSocket(target.webSocketDebuggerUrl);
   await new Promise(resolve => socket.addEventListener('open', resolve, { once: true }));
   let id = 0;
@@ -29,19 +31,19 @@ async function main() {
   };
   await send('Page.enable'); await send('Runtime.enable');
   const output = path.join(__dirname, '../delivery/screenshots'); fs.mkdirSync(output, { recursive: true });
-  const routes = ['/', '/jobs', '/login', '/signup', '/resend-verification', '/check-email', '/verified', '/dashboard', '/dashboard?role=employer', '/dashboard?role=dual', '/profile', '/profile?role=employer', '/jobs/new?role=employer', '/jobs/1', '/jobs/1/applicants?role=employer', '/notifications', '/admin?role=admin', '/error'];
+  const routes = ['/', '/jobs', '/login', '/signup', '/resend-verification', '/forgot-password', '/reset-password/preview', '/saved-jobs', '/reports', '/faq', '/privacy', '/terms', '/help', '/contact', '/guidelines', '/employer-responsibilities', '/check-email', '/verified', '/dashboard', '/dashboard?role=employer', '/dashboard?role=dual', '/profile', '/profile?role=employer', '/jobs/new?role=employer', '/jobs/1', '/jobs/1/applicants?role=employer', '/notifications', '/admin?role=admin', '/error'];
   const results = [];
   try {
     for (const width of [360, 768, 1440]) {
       await send('Emulation.setDeviceMetricsOverride', { width, height: 1000, deviceScaleFactor: 1, mobile: width === 360 });
       for (const route of routes) {
-        await send('Page.navigate', { url: 'http://127.0.0.1:3100' + route });
+        await send('Page.navigate', { url: previewBase + route });
         for (let i = 0; i < 40; i++) { await delay(50); if (await evaluate("document.readyState==='complete' && !!document.querySelector('footer')")) break; }
         const layout = await evaluate(`(() => {
           const controls=[...document.querySelectorAll('input:not([type=hidden]),select,textarea,button')].filter(n=>n.getBoundingClientRect().width);
           return { width:innerWidth, scroll:document.documentElement.scrollWidth, title:document.title,
             missingLabels:controls.filter(n=>n.tagName!=='BUTTON' && !n.labels?.length && !n.getAttribute('aria-label')).map(n=>n.name),
-            smallControls:controls.filter(n=>n.type!=='checkbox' && n.getBoundingClientRect().height<43).map(n=>n.name || n.textContent),
+            smallControls:controls.filter(n=>!['checkbox','radio'].includes(n.type) && n.getBoundingClientRect().height<43).map(n=>n.name || n.textContent),
             main:!!document.querySelector('main h1'), errors:document.body.textContent.includes('ReferenceError') };
         })()`);
         assert.ok(!layout.errors && layout.main, route + ' renders');
@@ -57,7 +59,7 @@ async function main() {
         }
         if (route === '/login') assert.equal(await evaluate("document.querySelector('.password-toggle').click();document.querySelector('[name=password]').type"), 'text');
         const selected = ['/', '/jobs', '/login', '/signup', '/dashboard', '/dashboard?role=employer', '/profile', '/jobs/new?role=employer', '/jobs/1', '/jobs/1/applicants?role=employer', '/notifications', '/admin?role=admin'];
-        if (width !== 768 && selected.includes(route)) {
+        if (selected.includes(route)) {
           const shot = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
           const name = route === '/' ? 'landing' : route.slice(1).replace(/[^a-z0-9]+/gi, '-');
           fs.writeFileSync(path.join(output, `${name}-${width}.png`), Buffer.from(shot.data, 'base64'));
@@ -68,6 +70,6 @@ async function main() {
     assert.deepEqual(errors, [], 'No browser JavaScript errors');
     fs.writeFileSync(path.join(output, '../browser-results.json'), JSON.stringify(results, null, 2));
     console.log(`PASS: ${results.length} browser page/viewport checks; labels, controls, overflow, calendar, search and password toggle. Screenshots saved in delivery/screenshots.`);
-  } finally { socket.close(); await fetch(`http://127.0.0.1:9223/json/close/${target.id}`); }
+  } finally { socket.close(); await fetch(`${browserBase}/json/close/${target.id}`); }
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });

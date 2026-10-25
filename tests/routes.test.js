@@ -4,13 +4,13 @@ const crypto = require('crypto');
 const db = require('../config/db');
 const { connectMongo, getMongoDb, closeMongo } = require('../config/mongo');
 const app = require('../app');
-const supertest = require('supertest');
+const supertest = require('./helpers/http');
 
 test('HTTP pages and profile, posting, application, recruitment, rating and admin workflows', async () => {
   const ids = [];
   try {
     await require('../config/checkSchema').checkSchema();
-    await connectMongo();
+    await connectMongo(); await getMongoDb().collection('rate_limits').deleteMany({});
     const password = 'RouteTest123!';
     const hash = await bcrypt.hash(password, 10);
     async function account(student, employer, admin = false) {
@@ -58,7 +58,7 @@ test('HTTP pages and profile, posting, application, recruitment, rating and admi
     const now = Date.now();
     const data = {
       title: 'HTTP test work', description: 'Test posting', workType: 'Cleaning', location: 'Kanglung',
-      wageRate: 100, wageUnit: 'hour', workersNeeded: 2, urgency: 'urgent', status: 'open',
+      requirements: 'Reliability and cleaning skills', wageRate: 100, wageUnit: 'hour', workersNeeded: 2, urgency: 'urgent', status: 'open',
       opensAt: localDate(now - 3600000), closesAt: localDate(now + 3600000),
       startAt: localDate(now + 86400000), endAt: localDate(now + 90000000),
     };
@@ -71,7 +71,7 @@ test('HTTP pages and profile, posting, application, recruitment, rating and admi
     for (const employee of [student, dual]) {
       const response = await request('/api/calendar', employee);
       assert.equal(response.headers['cache-control'], 'no-store');
-      assert.ok(!(response.body).some(event => event.id === scheduledId));
+      assert.equal(response.body.find(event => event.id === scheduledId).status,'scheduled');
     }
     await db.none("UPDATE jobs SET application_opens_at=NOW()-INTERVAL '1 minute' WHERE id=$1", [scheduledId]);
     for (const employee of [student, dual]) {
@@ -168,6 +168,7 @@ test('HTTP pages and profile, posting, application, recruitment, rating and admi
     if (ids.length) {
       await getMongoDb().collection('ratings').deleteMany({ employerId: { $in: ids } });
       await getMongoDb().collection('sessions').deleteMany({ 'session.user.id': { $in: ids } });
+      await db.none('DELETE FROM audit_records WHERE actor_id IN ($1:csv)',[ids]);
       await db.none('DELETE FROM applications WHERE student_id IN ($1:csv) OR job_id IN (SELECT id FROM jobs WHERE employer_id IN ($1:csv))', [ids]);
       await db.none('DELETE FROM jobs WHERE employer_id IN ($1:csv)', [ids]);
       await db.none('DELETE FROM users WHERE id IN ($1:csv)', [ids]);

@@ -6,6 +6,7 @@
 <p>Give students clear information about the work and schedule.</p>
 </div>
   <form method="POST" action="<%= draft ? '/jobs/'+draft.id+'/edit' : '/jobs' %>" class="stack-form" data-posting>
+<input type="hidden" name="_csrf" value="<%= typeof csrfToken==='string'?csrfToken:'' %>">
     <fieldset class="form-section">
 <legend>1. Describe the opportunity</legend>
 <div class="form-grid">
@@ -54,7 +55,7 @@
 </label>
     <label>Application closing date and time<input type="text" data-schedule-date placeholder="DD/MM/YYYY hh:mm AM/PM" maxlength="19" title="Use DD/MM/YYYY hh:mm AM/PM, for example 23/10/2026 02:30 PM" name="closesAt" required>
 </label>
-    <p class="span-2">All dates and times use Bhutan time (UTC+06:00). Opening defaults to now so published work appears immediately in employee calendars. A future opening keeps it hidden until that time. Applications must close by the work start.</p>
+    <p class="span-2">All dates and times use Bhutan time (UTC+06:00). Opening defaults to now so published work appears immediately in employee calendars. A future opening appears as scheduled in student calendars. Applications must close by the work start.</p>
     <label>Start date and time<input type="text" data-schedule-date placeholder="DD/MM/YYYY hh:mm AM/PM" maxlength="19" title="Use DD/MM/YYYY hh:mm AM/PM, for example 23/10/2026 02:30 PM" name="startAt" required>
 </label>
     <label>End date and time<input type="text" data-schedule-date placeholder="DD/MM/YYYY hh:mm AM/PM" maxlength="19" title="Use DD/MM/YYYY hh:mm AM/PM, for example 23/10/2026 02:30 PM" name="endAt" required>
@@ -67,7 +68,7 @@
 <label>Work description<textarea name="description" rows="6" required maxlength="2000">
 </textarea>
 </label>
-    <label>Requirements<textarea name="requirements" rows="3" maxlength="1500" placeholder="Skills, experience or anything students should bring">
+    <label>Required skills and requirements<textarea name="requirements" rows="3" maxlength="1500" required placeholder="Skills, experience or anything students should bring">
 </textarea>
 </label>
 </div>
@@ -77,8 +78,10 @@
 <p id="postingReview">Check the wage, location and dates before publishing. Save a draft if you need more time.</p>
 </section>
 <div class="row-actions">
-<button class="btn" name="status" value="open">Publish Work</button>
+<button class="btn" name="status" value="open"><%= draft && draft.status==='open'?'Save changes':'Publish Work' %></button>
+<% if(!draft || draft.status==='draft'){ %>
 <button class="btn secondary" name="status" value="draft">Save Draft</button>
+<% } %>
 </div>
   </form>
 </section>

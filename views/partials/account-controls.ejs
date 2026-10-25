@@ -1,0 +1,11 @@
+<section class="panel"><h2>Account security</h2><p>Changing your password signs out your other sessions.</p>
+<form method="POST" action="/profile/password" class="stack-form">
+<input type="hidden" name="_csrf" value="<%= typeof csrfToken==='string'?csrfToken:'' %>"><label>Current password<input type="password" name="currentPassword" autocomplete="current-password" required></label>
+<label>New password<input type="password" name="password" autocomplete="new-password" minlength="8" data-strength required aria-describedby="password-strength"></label>
+<p id="password-strength" class="field-help" role="status">Use a unique password of at least 8 characters (at most 72 bytes).</p>
+<label>Confirm new password<input type="password" name="confirmPassword" autocomplete="new-password" minlength="8" required></label><button class="btn">Change password</button></form></section>
+<section class="panel"><h2>Close your account</h2><p>Finish or cancel active work first. Deactivation disables sign-in; an administrator can reactivate it. Deletion anonymizes identity and removes profile details. Historical work and dispute records remain linked to an anonymous account.</p>
+<form method="POST" action="/profile/close" class="stack-form" data-confirm="Close this account? Deletion anonymizes your identity and cannot be undone.">
+<input type="hidden" name="_csrf" value="<%= typeof csrfToken==='string'?csrfToken:'' %>">
+<label>Action<select name="action"><option value="deactivate">Deactivate account</option><option value="delete">Delete account</option></select></label>
+<label>Current password<input type="password" name="currentPassword" autocomplete="current-password" required></label><label>Type DEACTIVATE or DELETE<input name="confirmation" autocomplete="off" required></label><button class="btn danger">Confirm account closure</button></form></section>

@@ -1,5 +1,11 @@
 const Application = require('../models/Application');
 const Job = require('../models/Job');
+exports.review = async (req, res, next) => {
+  try {
+    await require('../config/db').none(`UPDATE applications a SET status='under_review' FROM jobs j WHERE a.job_id=j.id AND a.id=$1 AND j.employer_id=$2 AND a.status='pending'`, [req.params.id, req.session.user.id]);
+    res.redirect('/dashboard');
+  } catch (error) { next(error); }
+};
 
 exports.apply = async (req, res, next) => {
   try {
@@ -64,7 +70,7 @@ exports.complete = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
-exports.withdraw = async(req,res,next)=>{try{await require('../config/db').none("UPDATE applications SET status='withdrawn',decided_at=NOW(),decision_note='You withdrew this application.' WHERE id=$1 AND student_id=$2 AND status='pending'",[req.params.id,req.session.user.id]);res.redirect('/profile');}catch(e){next(e);}};
+exports.withdraw = async(req,res,next)=>{try{await require('../config/db').none("UPDATE applications SET status='withdrawn',decided_at=NOW(),decision_note='You withdrew this application.' WHERE id=$1 AND student_id=$2 AND status IN ('pending','under_review')",[req.params.id,req.session.user.id]);res.redirect('/profile');}catch(e){next(e);}};
 
 for (const action of ['confirm', 'decline', 'start']) {
   exports[action] = async (req, res, next) => {

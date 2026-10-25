@@ -23,9 +23,12 @@
 <% } %>
 </div>
 </section>
+<% if(typeof dualRole!=='undefined' && dualRole){ %><nav class="role-switch" aria-label="Dashboard role"><a class="btn <%= mode==='student'?'':'secondary' %>" href="/dashboard?mode=student" <%- mode==='student'?'aria-current="page"':'' %>>Employee dashboard</a><a class="btn <%= mode==='employer'?'':'secondary' %>" href="/dashboard?mode=employer" <%- mode==='employer'?'aria-current="page"':'' %>>Employer dashboard</a></nav><% } %>
+<section class="panel"><h2>Your profile</h2><p><%= profileCompletion(profile) %>% complete<% if(profile.is_student){ %> &middot; <strong><%= availabilityLabel(profile.availability_status) %></strong><% } %></p><progress max="100" value="<%= profileCompletion(profile) %>" aria-label="Profile completion"></progress><a href="/profile">Complete your profile</a></section>
+<% if(profile.is_student && typeof recommendations!=='undefined'){ %><section class="panel"><div class="section-heading"><h2>Recommended for your skills</h2><a href="/jobs">All jobs</a></div><% if(!recommendations.length){ %><p class="empty">Add skills to your profile or explore all available work.</p><% } %><div class="card-grid"><% recommendations.forEach(job=>{ %><%- include('../partials/job-card',{job}) %><% }) %></div><h3>Upcoming application deadlines</h3><% deadlines.forEach(job=>{ %><p><a href="/jobs/<%= job.id %>"><%= job.title %></a> &middot; Apply by <%= dateTime(job.application_closes_at) %></p><% }) %></section><% } %>
 <% const totalApplicants=employerJobs.reduce((n,j)=>n+Number(j.applicant_count),0); %>
 <div class="stats-grid">
-<% const stats=profile.is_student ? [['Applications',studentApplications.length],['Accepted / in progress',studentApplications.filter(a=>['accepted','in_progress'].includes(a.status)).length],['Completed work',studentApplications.filter(a=>a.status==='completed').length],['Average rating',ratings.length ? (ratings.reduce((n,r)=>n+r.score,0)/ratings.length).toFixed(1)+'/5' : 'New']] : [['Active work',employerJobs.filter(j=>j.status==='open').length],['Closed work',employerJobs.filter(j=>['closed','cancelled'].includes(j.status)).length],['Completed placements',employerJobs.reduce((n,j)=>n+Number(j.completed_count||0),0)],['Applicants',totalApplicants]]; stats.forEach(([label,value])=>{ %>
+<% const stats=profile.is_student ? [['Applications',studentApplications.length],['Accepted / in progress',studentApplications.filter(a=>['accepted','in_progress'].includes(a.status)).length],['Completed work',studentApplications.filter(a=>a.status==='completed').length],['Average rating',ratings.length ? (ratings.reduce((n,r)=>n+r.score,0)/ratings.length).toFixed(1)+'/5' : 'New']] : [['Active work',employerJobs.filter(j=>jobState(j)==='open').length],['Closed work',employerJobs.filter(j=>['closed','cancelled','Expired'].includes(jobState(j))).length],['Completed placements',employerJobs.reduce((n,j)=>n+Number(j.completed_count||0),0)],['Applicants',totalApplicants]]; stats.forEach(([label,value])=>{ %>
 <div class="stat-card">
 <span>
 <%= label %>
@@ -81,7 +84,7 @@
 </div>
 <aside class="panel">
 <h2>Profile readiness</h2>
-<% const completed=profile.is_student ? [profile.name,profile.bio,profile.programme,profile.study_year,profile.skills && profile.skills.length,profile.preferred_hours] : [profile.name,profile.business_name,profile.location,profile.contact_number]; const percentage=Math.round(completed.filter(Boolean).length/completed.length*100); %>
+<% const percentage=profileCompletion(profile); %>
 <label for="profileProgress">
 <%= percentage %>% complete</label>
 <progress class="profile-completion" id="profileProgress" value="<%= percentage %>" max="100">
@@ -100,7 +103,7 @@
 <button type="button" id="calendarRefresh" class="btn secondary">Refresh</button>
 </div>
   <% if(profile.is_student){ %>
-<p>Published work appears automatically when applications open. Draft, cancelled and unopened opportunities are hidden. Your application history stays visible.</p>
+<p>Eligible published work appears automatically, including scheduled openings and application deadlines. Private drafts are hidden. Your application history stays visible.</p>
 <% } %>
   <% if(profile.is_employer){ %>
 <p>Your postings appear here, including drafts and scheduled work. <%= profile.is_student ? 'You also see other employers’ open work through your student role.' : 'Other employers’ opportunities are hidden from employer-only accounts.' %>
@@ -116,7 +119,7 @@
 </label>
 </div>
   <p class="calendar-legend">
-<% ['open','applied','invited','accepted','in_progress','completed','closed','personal','deadline'].forEach(status=>{ %>
+<% ['open','scheduled','opening','applied','invited','accepted','in_progress','completed','closed','personal','deadline'].forEach(status=>{ %>
 <span class="status <%= status %>">
 <%= status %>
 </span> <% }) %>
@@ -127,7 +130,7 @@
 </p>
   <p id="calendarMessage" class="small" role="status" aria-live="polite">Loading your calendar...</p>
   <div class="calendar-scroll">
-<div id="calendar" class="calendar">
+<div id="calendar" class="calendar" data-mode="<%= typeof mode!=='undefined'?mode:'student' %>">
 </div>
 </div>
   <div class="section-heading">
@@ -258,7 +261,7 @@
 <h2>Quick links</h2>
 <nav class="quick-links" aria-label="Dashboard shortcuts">
 <a href="/jobs">Explore work</a>
-<a href="/profile">Edit your profile</a>
+<a href="/profile">Edit your profile</a><a href="/reports">Reports and complaints</a>
 <a href="#calendar">Open your calendar</a>
 <% if(user.isAdmin){ %>
 <a href="/admin">Review accounts</a>
@@ -270,9 +273,10 @@
 <h2>Availability</h2>
 <p>Your calendar is checked before recruitment. The manual status can temporarily hide you from urgent recruitment.</p>
 <form method="POST" action="/profile/availability" class="stack-form">
+<input type="hidden" name="_csrf" value="<%= typeof csrfToken==='string'?csrfToken:'' %>">
 <label>Recruitment availability<select name="status">
-<option value="active" <%= profile.availability_status === 'active' ? 'selected' : '' %>>Active</option>
-<option value="inactive" <%= profile.availability_status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+<option value="active" <%= profile.availability_status === 'active' ? 'selected' : '' %>>Available</option>
+<option value="inactive" <%= profile.availability_status === 'inactive' ? 'selected' : '' %>>Unavailable</option>
 </select>
 </label>
 <button class="btn">Update</button>

@@ -1,12 +1,12 @@
 const { normalize } = require('../public/js/dateTimeInput');
 function isOpen(job, now = new Date()) {
-  return job.employer_status !== 'rejected' && job.employer_status !== 'pending' && job.employer_verified !== false && job.status === 'open' && !!job.published_at &&
+  return !job.is_suspended && (!job.employer_account_status || job.employer_account_status==='active') && job.employer_status !== 'rejected' && job.employer_status !== 'pending' && job.employer_verified !== false && job.status === 'open' && !!job.published_at &&
     new Date(job.application_opens_at) <= now && now < new Date(job.application_closes_at);
 }
 function canView(job, user, hasApplication = false) {
   if (user && (user.isAdmin || job.employer_id === user.id)) return true;
   if (user && !user.isStudent) return false;
-  return hasApplication || isOpen(job);
+  return hasApplication || isOpen(job) || (!job.is_suspended && !!job.published_at && job.status!=='draft' && job.employer_status==='approved' && job.employer_account_status==='active');
 }
 function dateInput(value) {
   value = normalize(value);

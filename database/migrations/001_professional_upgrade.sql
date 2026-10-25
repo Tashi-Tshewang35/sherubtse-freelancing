@@ -84,9 +84,9 @@ ALTER TABLE student_profiles ADD COLUMN IF NOT EXISTS availability_before_work V
 ALTER TABLE jobs ADD COLUMN IF NOT EXISTS requirements VARCHAR(1500) NOT NULL DEFAULT '';
 ALTER TABLE applications ADD COLUMN IF NOT EXISTS decision_note VARCHAR(500) NOT NULL DEFAULT '';
 ALTER TABLE applications DROP CONSTRAINT IF EXISTS applications_status_check;
-ALTER TABLE applications ADD CONSTRAINT applications_status_check CHECK(status IN ('pending','invited','accepted','in_progress','completed','rejected','declined','withdrawn'));
+ALTER TABLE applications ADD CONSTRAINT applications_status_check CHECK(status IN ('pending','under_review','invited','accepted','in_progress','completed','rejected','declined','withdrawn'));
 ALTER TABLE application_status_history DROP CONSTRAINT IF EXISTS application_status_history_status_check;
-ALTER TABLE application_status_history ADD CONSTRAINT application_status_history_status_check CHECK(status IN ('pending','invited','accepted','in_progress','completed','rejected','declined','withdrawn'));
+ALTER TABLE application_status_history ADD CONSTRAINT application_status_history_status_check CHECK(status IN ('pending','under_review','invited','accepted','in_progress','completed','rejected','declined','withdrawn'));
 CREATE TABLE IF NOT EXISTS notifications (
  id SERIAL PRIMARY KEY,
  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,

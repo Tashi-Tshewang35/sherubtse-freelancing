@@ -2,23 +2,24 @@
 <section class="auth-card">
   <span class="eyebrow">Create account</span>
 <h1>Your next chapter starts here</h1>
-  <p>Students must use an address such as <strong>07240057.sherubtse@rub.edu.bt</strong>
+  <p>Use your full student email: <strong>your 8-digit student number.sherubtse@rub.edu.bt</strong>. All admission years are accepted, including 07220057, 07230045 and 07250067.
 </p>
   <form method="POST" action="/signup" class="stack-form">
+<input type="hidden" name="_csrf" value="<%= typeof csrfToken==='string'?csrfToken:'' %>">
     <label>Full name<input name="name" autocomplete="name" placeholder="Your full name" required maxlength="100">
 </label>
     <label>Email address<input type="email" name="email" autocomplete="email" placeholder="Your email address" required>
 </label>
-    <label>Password<input type="password" name="password" autocomplete="new-password" placeholder="At least 6 characters" aria-describedby="password-help" minlength="6" required>
+    <label>Password<input type="password" name="password" autocomplete="new-password" placeholder="At least 8 characters" aria-describedby="password-help password-strength" minlength="8" data-strength required>
 </label>
-<p id="password-help" class="field-help">Use at least 6 characters. Choose a password you do not use elsewhere.</p>
-    <label>How would you like to use Sherubtse Freelancing?
-      <select name="accountType" required>
-        <option value="student">Student freelancer only</option>
-        <option value="employer">Employer only</option>
-        <option value="both">Student freelancer and employer</option>
-      </select>
-    </label>
+<p id="password-help" class="field-help">Use at least 8 characters, at most 72 bytes. Choose a unique password.</p>
+<p id="password-strength" class="field-help" role="status">Longer passwords are stronger.</p>
+<label>Confirm password<input type="password" name="confirmPassword" autocomplete="new-password" minlength="8" required></label>
+<fieldset><legend>How would you like to use the platform?</legend><div class="role-cards">
+<label class="role-card"><input type="radio" name="accountType" value="student" checked required><strong>Student freelancer</strong><span>Find work and build your reputation.</span></label>
+<label class="role-card"><input type="radio" name="accountType" value="employer" required><strong>Employer</strong><span>Hire students for your business or project.</span></label>
+<label class="role-card"><input type="radio" name="accountType" value="both" required><strong>Both</strong><span>Work and hire with one verified student account.</span></label>
+</div></fieldset>
     <button class="btn" type="submit">Create Account</button>
   </form>
   <p class="small">Students use their education email to apply for work. Employers can use a regular email to hire students after verification and administrator approval. Choose both to study and hire with one account.</p>

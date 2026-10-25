@@ -9,6 +9,7 @@ test('application boundaries, employer-only visibility and dual roles',()=>{
  assert.equal(dateInput('2030-01-01T12:00'),'2030-01-01T06:00:00.000Z');assert.equal(dateInput('garbage'),null);
 });
 test('PostgreSQL migration, profiles, skills, calendar, recruitment and status history (rolled back)',async()=>{
+ await require('../config/mongo').connectMongo();
  const original={};const rollback=new Error('ROLLBACK_TEST');
  try{await db.tx(async t=>{
   await t.none(fs.readFileSync('database/profile_calendar_migration.sql','utf8').replace(/^BEGIN;/m,'').replace(/^COMMIT;/m,''));
@@ -33,7 +34,7 @@ test('PostgreSQL migration, profiles, skills, calendar, recruitment and status h
    const draft=await Job.createJob(employer.id,{...data,status:'draft'});
    assert.equal(await Application.apply(future.id,student.id,''),null);assert.equal(await Application.apply(closed.id,student.id,''),null);assert.equal(await Application.apply(draft.id,student.id,''),null);assert.equal(await Application.apply(job.id,other.id,''),null);
    assert.equal((await Calendar.getEvents({id:other.id,isStudent:false,isEmployer:true})).length,0);
-   let events=await Calendar.getEvents({id:dual.id,isStudent:true,isEmployer:true});assert.ok(events.some(e=>e.id===job.id));assert.ok(!events.some(e=>[future.id,closed.id,draft.id].includes(e.id)));
+   let events=await Calendar.getEvents({id:dual.id,isStudent:true,isEmployer:true});assert.ok(events.some(e=>e.id===job.id));assert.ok(events.some(e=>e.id===future.id && e.status==='scheduled'));assert.ok(!events.some(e=>[closed.id,draft.id].includes(e.id)));
    assert.ok((await Calendar.getEvents({id:employer.id,isStudent:false,isEmployer:true})).some(e=>e.id===draft.id));
    const a=await Application.apply(job.id,student.id,'Hello');const b=await Application.apply(conflicting.id,student.id,'Conflict');
    const applicants=await Application.getJobApplicants(job.id,employer.id);assert.equal(applicants[0].skills,'Edited skill');assert.equal(Number(applicants[0].average_rating),0);
@@ -77,5 +78,5 @@ test('PostgreSQL migration, profiles, skills, calendar, recruitment and status h
    await ejs.renderFile('views/dashboards/admin.ejs',{...shared,pendingEmployers:[],accounts:[],applications:[],filters:{q:'',role:'',approval:'',status:''}});
   }finally{for(const [method,value]of Object.entries(original))db[method]=value;}
   throw rollback;
- });}catch(e){if(e!==rollback)throw e;}finally{await db.$pool.end();}
+ });}catch(e){if(e!==rollback)throw e;}finally{await require('../config/mongo').closeMongo();await db.$pool.end();}
 });

@@ -10,9 +10,9 @@ function apply(jobId, studentId, coverNote) {
       `INSERT INTO applications (job_id, student_id, cover_note, status, source)
        SELECT j.id,u.id,$3,'pending','application'
        FROM jobs j JOIN users u ON u.id=$2 JOIN users e ON e.id=j.employer_id
-       WHERE j.id=$1 AND j.employer_id<>$2 AND u.is_student AND u.is_verified
-         AND j.status='open' AND j.published_at IS NOT NULL
-         AND e.employer_status='approved' AND e.is_verified
+       WHERE j.id=$1 AND j.employer_id<>$2 AND u.is_student AND u.is_verified AND u.account_status='active' AND u.availability_status='active'
+         AND j.status='open' AND NOT j.is_suspended AND j.published_at IS NOT NULL
+         AND e.employer_status='approved' AND e.is_verified AND e.account_status='active'
          AND j.application_opens_at<=NOW() AND j.application_closes_at>NOW()
          AND NOT EXISTS (
            SELECT 1 FROM applications busy JOIN jobs bj ON bj.id=busy.job_id
@@ -31,7 +31,7 @@ function apply(jobId, studentId, coverNote) {
 
 function getStudentApplications(studentId) {
   return db.any(
-    `SELECT a.*, j.title, j.work_type, j.location, j.start_at, j.end_at,
+    `SELECT a.*, j.employer_id, j.title, j.work_type, j.location, j.start_at, j.end_at,
             j.wage_rate, j.wage_unit, COALESCE(ep.business_name,u.name) AS employer_name
      FROM applications a
      JOIN jobs j ON j.id = a.job_id
@@ -69,8 +69,8 @@ function accept(applicationId, employerId, studentId = null) {
     const application = await t.oneOrNone(
       `SELECT a.*, j.start_at, j.end_at, j.workers_needed
        FROM applications a JOIN jobs j ON j.id = a.job_id
-       WHERE a.id = $1 AND j.employer_id = $2 AND ((a.status = 'pending' AND $3::int IS NULL) OR (a.status='invited' AND a.student_id=$3)) AND j.status='open' AND j.published_at IS NOT NULL AND j.application_opens_at<=NOW() AND j.end_at>NOW() AND ($3::int IS NULL OR j.start_at>NOW())
-       AND EXISTS(SELECT 1 FROM users owner WHERE owner.id=j.employer_id AND owner.employer_status='approved' AND owner.is_verified)
+       WHERE a.id = $1 AND j.employer_id = $2 AND EXISTS(SELECT 1 FROM users candidate WHERE candidate.id=a.student_id AND candidate.account_status='active' AND (candidate.availability_status='active' OR EXISTS(SELECT 1 FROM student_profiles preferences WHERE preferences.user_id=candidate.id AND preferences.availability_before_work='active'))) AND ((a.status IN ('pending','under_review') AND $3::int IS NULL) OR (a.status='invited' AND a.student_id=$3)) AND j.status='open' AND NOT j.is_suspended AND j.published_at IS NOT NULL AND j.application_opens_at<=NOW() AND j.end_at>NOW() AND ($3::int IS NULL OR j.start_at>NOW())
+       AND EXISTS(SELECT 1 FROM users owner WHERE owner.id=j.employer_id AND owner.employer_status='approved' AND owner.is_verified AND owner.account_status='active')
        FOR UPDATE`,
       [applicationId, employerId, studentId]
     );
@@ -108,7 +108,7 @@ function accept(applicationId, employerId, studentId = null) {
       `UPDATE applications a SET status = 'withdrawn', decided_at = NOW(), decision_note='Automatically withdrawn because you confirmed overlapping work.'
        FROM jobs other_job
        WHERE a.job_id = other_job.id
-         AND a.student_id = $1 AND a.id <> $2 AND a.status IN ('pending','invited')
+         AND a.student_id = $1 AND a.id <> $2 AND a.status IN ('pending','under_review','invited')
          AND tstzrange(other_job.start_at, other_job.end_at, '[)') && tstzrange($3, $4, '[)')`,
       [application.student_id, applicationId, application.start_at, application.end_at]
     );
@@ -120,7 +120,7 @@ function accept(applicationId, employerId, studentId = null) {
 function reject(applicationId, employerId, note = '') {
   return db.oneOrNone(
     `UPDATE applications a SET status = 'rejected', decided_at = NOW(), decision_note=$3
-     FROM jobs j WHERE a.job_id = j.id AND a.id = $1 AND j.employer_id = $2 AND a.status IN ('pending','invited')
+     FROM jobs j WHERE a.job_id = j.id AND a.id = $1 AND j.employer_id = $2 AND a.status IN ('pending','under_review','invited')
      RETURNING a.*`,
     [applicationId, employerId, note]
   );
@@ -131,7 +131,7 @@ function directRecruit(jobId, studentId, employerId) {
     await t.one('SELECT id FROM users WHERE id=$1 FOR UPDATE',[studentId]);
     const job = await t.oneOrNone(
       `SELECT * FROM jobs WHERE id = $1 AND employer_id = $2
-       AND urgency = 'urgent' AND status = 'open' AND published_at IS NOT NULL AND application_opens_at<=NOW() AND application_closes_at>NOW() FOR UPDATE`,
+       AND NOT is_suspended AND urgency = 'urgent' AND status = 'open' AND published_at IS NOT NULL AND application_opens_at<=NOW() AND application_closes_at>NOW() FOR UPDATE`,
       [jobId, employerId]
     );
     if (!job) throw new Error('Direct recruitment is available only for your open urgent jobs.');
@@ -145,7 +145,7 @@ function directRecruit(jobId, studentId, employerId) {
 
     const student = await t.oneOrNone(
       `SELECT id FROM users WHERE id = $1 AND id <> $2 AND is_student = true
-       AND is_verified = true AND availability_status = 'active'`,
+       AND is_verified = true AND account_status='active' AND availability_status = 'active'`,
       [studentId, employerId]
     );
     if (!student) throw new Error('The selected student is currently unavailable.');
@@ -190,11 +190,8 @@ function markCompleted(applicationId, employerId) {
       AND a.status IN ('accepted','in_progress') RETURNING a.*`, [applicationId,employerId]);
     if (!completed) return null;
     const remaining = await t.oneOrNone("SELECT id FROM applications WHERE student_id=$1 AND status IN ('accepted','in_progress') LIMIT 1", [completed.student_id]);
-    if (!remaining) {
-      await t.none(`UPDATE users u SET availability_status=sp.availability_before_work FROM student_profiles sp
-        WHERE sp.user_id=u.id AND u.id=$1 AND sp.availability_before_work IS NOT NULL`, [completed.student_id]);
-      await t.none('UPDATE student_profiles SET availability_before_work=NULL WHERE user_id=$1', [completed.student_id]);
-    }
+    if (!remaining) await require('./WorkLifecycle').restore(t, completed.student_id);
+
     return completed;
   });
 }

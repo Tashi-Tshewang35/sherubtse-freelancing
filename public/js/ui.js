@@ -31,6 +31,32 @@ document.querySelectorAll('input[type="password"]').forEach((input, index) => {
 document.querySelectorAll('form[data-confirm]').forEach(form => {
   form.addEventListener('submit', event => { if (!window.confirm(form.dataset.confirm)) event.preventDefault(); });
 });
+document.querySelectorAll('[data-strength]').forEach(input => {
+  const form=input.form;
+  const feedback=form.querySelector('#password-strength');
+  const confirm=form.elements.confirmPassword;
+  const validate=()=>{
+    const length=input.value.length;
+    const bytes=new TextEncoder().encode(input.value).length;
+    const variety=[/[a-z]/,/[A-Z]/,/\d/,/[^a-zA-Z0-9]/].filter(pattern=>pattern.test(input.value)).length;
+    if(feedback)feedback.textContent=bytes>72?'Use at most 72 bytes.':length<8?'Use at least 8 characters.':length>=14||length>=10&&variety>=3?'Strong password length and variety.':'Valid length. Add length and variety for a stronger password.';
+    input.setCustomValidity(bytes>72?'Use at most 72 bytes.':'');
+    if(confirm)confirm.setCustomValidity(confirm.value && confirm.value!==input.value?'Passwords must match.':'');
+  };
+  input.addEventListener('input',validate);
+  if(confirm)confirm.addEventListener('input',validate);
+});
+document.querySelectorAll('form[method="POST"]').forEach(form=>{
+  form.addEventListener('submit',()=>{
+    if(!form.checkValidity())return;
+    // Defer until confirmation listeners have had an opportunity to cancel.
+    window.setTimeout(()=>{
+      if(form.dataset.confirm)return;
+      form.setAttribute('aria-busy','true');
+      form.querySelectorAll('button[type="submit"],button:not([type])').forEach(button=>{button.disabled=true;});
+    },0);
+  });
+});
 function paginate(container, allItems, size) {
   let items = allItems;
   let page = 0;
@@ -68,14 +94,20 @@ if (filters) {
     cards.forEach(card => {
       card.hidden = !card.dataset.search.includes(query) ||
         (filters.elements.type.value && card.dataset.type !== filters.elements.type.value) ||
-        (filters.elements.urgency.value && card.dataset.urgency !== filters.elements.urgency.value);
+        (filters.elements.urgency.value && card.dataset.urgency !== filters.elements.urgency.value) ||
+        (filters.elements.location?.value && !card.dataset.location.includes(filters.elements.location.value.trim().toLowerCase())) ||
+        (filters.elements.date?.value && card.dataset.date !== filters.elements.date.value);
       if (!card.hidden) count++;
     });
     document.getElementById('workCount').textContent = `${count} matching opportunities. All times are Bhutan time.`;
     document.getElementById('workEmpty').hidden = count > 0;
-    pager.reset(cards.filter(card => !card.hidden));
+    const sort=filters.elements.sort?.value;
+    const visible=cards.filter(card=>!card.hidden).sort((a,b)=>sort==='closing'?Number(a.dataset.closing)-Number(b.dataset.closing):sort==='wage'?Number(b.dataset.wage)-Number(a.dataset.wage):sort==='urgent'?Number(b.dataset.urgency==='urgent')-Number(a.dataset.urgency==='urgent'):Number(b.dataset.created)-Number(a.dataset.created));
+    visible.forEach(card=>document.getElementById('workResults').appendChild(card));
+    pager.reset(visible);
   };
-  filters.addEventListener('submit', event => { event.preventDefault(); update(); });
+  // GET submission remains available to widen previously submitted filters.
+  filters.addEventListener('submit', event => { if(!filters.hasAttribute('data-server-filters'))event.preventDefault(); update(); });
   filters.addEventListener('input', update);
   filters.addEventListener('reset', () => window.setTimeout(update, 0));
   update();

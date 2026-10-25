@@ -18,10 +18,11 @@
 </div>
 </div>
 </section>
+<section class="panel"><h2>Profile completion</h2><p><%= profileCompletion(profile) %>% complete</p><progress max="100" value="<%= profileCompletion(profile) %>" aria-label="Profile completion"></progress><% if(!own){ %><p><a href="/reports?user=<%= profile.id %>">Report user</a></p><% } %></section>
 <% if(profile.is_student){ %>
 <section class="panel">
 <h2>Student profile</h2>
-<p>Student number: <%= profile.student_number || profile.email.slice(0,8) %> | Availability: <%= profile.availability_status %>
+<p>Student number: <%= profile.student_number || profile.email.slice(0,8) %> | Availability: <%= availabilityLabel(profile.availability_status) %>
 </p>
 <p>
 <%= profile.bio || 'No biography yet.' %>
@@ -46,6 +47,7 @@
 <p>Average rating: <%= Number(profile.average_rating).toFixed(1) %>/5 (<%= profile.rating_count %> reviews)</p>
 <% if(own){ %>
 <form action="/profile/student" method="POST" class="stack-form">
+<input type="hidden" name="_csrf" value="<%= typeof csrfToken==='string'?csrfToken:'' %>">
 <label>Full name<input name="name" value="<%= profile.name %>" required maxlength="100">
 </label>
 <div class="form-grid">
@@ -83,8 +85,8 @@
 </label>
 <label>Availability<select name="availability">
 <% ['active','inactive'].forEach(s=>{ %>
-<option <%= profile.availability_status===s?'selected':'' %>>
-<%= s %>
+<option value="<%= s %>" <%= profile.availability_status===s?'selected':'' %>>
+<%= availabilityLabel(s) %>
 </option>
 <% }) %>
 </select>
@@ -150,6 +152,7 @@
 </p>
 <% if(own){ %>
 <form method="POST" action="/profile/employer" class="form-grid">
+<input type="hidden" name="_csrf" value="<%= typeof csrfToken==='string'?csrfToken:'' %>">
 <label>Full name<input name="name" value="<%= profile.name %>" required maxlength="100">
 </label>
 <label>Business or organisation name<input name="businessName" value="<%= profile.business_name || '' %>" required maxlength="150">
@@ -188,4 +191,5 @@
 <% }) %>
 </section>
 <% } %>
+<% if(own){ %><%- include('../partials/account-controls') %><% } %>
 <%- include('../partials/footer') %>

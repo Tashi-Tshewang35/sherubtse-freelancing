@@ -2,7 +2,9 @@ const Calendar = require('../models/Calendar');
 
 exports.getCalendar = async (req, res, next) => {
   try {
-    const events = await Calendar.getEvents(req.session.user);
+    const user={...req.session.user};
+    if(user.isStudent && user.isEmployer && req.query.mode==='employer')user.isStudent=false;
+    const events = await Calendar.getEvents(user);
     res.set('Cache-Control', 'no-store');
     res.json(events);
   } catch (error) { next(error); }

@@ -8,8 +8,7 @@ function extractStudentNumber(email) {
   return isValidStudentEmail(email) ? email.trim().slice(0, 8) : null;
 }
 function isValidPassword(password) {
-  // Keep the existing six-character minimum and bcrypt's 72-byte ceiling.
-  return typeof password === 'string' && password.length >= 6 && Buffer.byteLength(password, 'utf8') <= 72;
+  return typeof password === 'string' && password.length >= 8 && Buffer.byteLength(password, 'utf8') <= 72;
 }
 function hasRequiredFields(values, names) {
   if (!values || typeof values !== 'object') return false;
@@ -50,7 +49,8 @@ function isValidRating(value) {
   return Number.isInteger(score) && score >= 1 && score <= 5;
 }
 const APPLICATION_TRANSITIONS = Object.freeze({
-  pending: ['invited', 'accepted', 'rejected', 'withdrawn'],
+  pending: ['under_review', 'invited', 'accepted', 'rejected', 'withdrawn'],
+  under_review: ['accepted','rejected','withdrawn'],
   invited: ['accepted', 'declined', 'rejected', 'withdrawn'],
   accepted: ['in_progress', 'completed'], // Direct completion remains compatible.
   in_progress: ['completed'],

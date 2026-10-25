@@ -34,8 +34,8 @@ app.locals.success = null;
 app.locals.error = null;
 
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(express.urlencoded({ extended: true, limit: '32kb' }));
+app.use(express.json({ limit: '32kb' }));
 
 app.use(session({
   name: 'sherubtse.sid',
@@ -55,6 +55,7 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use(require('./middleware/security').csrf);
 app.use('/', indexRoutes);
 app.use('/api', apiRoutes);
 

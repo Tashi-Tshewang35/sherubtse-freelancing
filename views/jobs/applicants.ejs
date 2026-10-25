@@ -5,6 +5,7 @@
 </h1>
 <p>Review availability and past ratings before making a decision.</p>
 </section>
+<% if(applicants.length){ %><details class="panel"><summary>Compare applicants</summary><div class="table-wrap" role="region" aria-label="Applicant comparison" tabindex="0"><table><thead><tr><th scope="col">Applicant</th><th scope="col">Skills</th><th scope="col">Availability</th><th scope="col">Completed work</th><th scope="col">Rating</th><th scope="col">Progress</th></tr></thead><tbody><% applicants.forEach(a=>{ %><tr><th scope="row"><a href="/profiles/<%= a.student_id %>"><%= a.name %></a></th><td><%= a.skills || 'Not added' %></td><td><%= a.schedule_availability==='active'?'Available':'Unavailable for this schedule' %></td><td><%= a.completed_count %></td><td><%= Number(a.average_rating).toFixed(1) %>/5 (<%= a.rating_count %>)</td><td><%= statusLabel(a.status) %></td></tr><% }) %></tbody></table></div></details><% } %>
 <div class="people-list">
   <% if (!applicants.length) { %>
 <p class="empty">No applications yet.</p>
@@ -36,15 +37,19 @@
 </span>
 </div>
       <div class="row-actions">
-        <% if (['pending','invited'].includes(applicant.status)) { %>
-<% if(applicant.status==='pending'){ %>
+<% if(applicant.status==='pending'){ %><form method="POST" action="/applications/<%= applicant.id %>/review">
+<input type="hidden" name="_csrf" value="<%= typeof csrfToken==='string'?csrfToken:'' %>"><button class="btn secondary">Mark under review</button></form><% } %>
+        <% if (['pending','under_review','invited'].includes(applicant.status)) { %>
+<% if(['pending','under_review'].includes(applicant.status)){ %>
 <form method="POST" action="/applications/<%= applicant.id %>/accept" data-confirm="Accept this student? Their overlapping applications will be withdrawn.">
+<input type="hidden" name="_csrf" value="<%= typeof csrfToken==='string'?csrfToken:'' %>">
 <button class="btn">Accept</button>
 </form>
 <% }else{ %>
 <p class="small">Waiting for student confirmation.</p>
 <% } %>
 <form method="POST" action="/applications/<%= applicant.id %>/reject">
+<input type="hidden" name="_csrf" value="<%= typeof csrfToken==='string'?csrfToken:'' %>">
 <label>Rejection reason (optional)<input name="reason" maxlength="500" placeholder="Share a helpful reason">
 </label>
 <button class="btn secondary">Reject</button>
@@ -52,16 +57,19 @@
 <% } %>
         <% if (applicant.status === 'accepted') { %>
 <form method="POST" action="/applications/<%= applicant.id %>/start">
+<input type="hidden" name="_csrf" value="<%= typeof csrfToken==='string'?csrfToken:'' %>">
 <button class="btn">Start work</button>
 </form>
 <% } %>
 <% if (['accepted','in_progress'].includes(applicant.status)) { %>
 <form method="POST" action="/applications/<%= applicant.id %>/complete">
+<input type="hidden" name="_csrf" value="<%= typeof csrfToken==='string'?csrfToken:'' %>">
 <button class="btn">Mark Completed</button>
 </form>
 <% } %>
         <% if (applicant.status === 'completed') { %>
 <form class="rating-form" method="POST" action="/applications/<%= applicant.id %>/rate">
+<input type="hidden" name="_csrf" value="<%= typeof csrfToken==='string'?csrfToken:'' %>">
 <label>Rating<select name="score">
 <option value="5">5 Excellent</option>
 <option value="4">4 Good</option>

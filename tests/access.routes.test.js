@@ -1,5 +1,5 @@
 jest.mock('../config/mailer', () => ({ sendVerificationEmail: jest.fn().mockResolvedValue(undefined) }));
-const request = require('supertest');
+const request = require('./helpers/http');
 const app = require('../app');
 const db = require('../config/db');
 const fixtures = require('./helpers/fixtures')();

@@ -11,6 +11,12 @@ async function get(userId) {
 }
 async function saveStudent(userId,data) {
  return db.tx(async t=>{
+  await t.one('SELECT id FROM users WHERE id=$1 FOR UPDATE',[userId]);
+  const busy=await t.oneOrNone("SELECT id FROM applications WHERE student_id=$1 AND status IN ('accepted','in_progress') LIMIT 1",[userId]);
+  if(busy) {
+   await t.none('UPDATE student_profiles SET availability_before_work=$2 WHERE user_id=$1',[userId,data.availability]);
+   data={...data,availability:'inactive'};
+  }
   await t.none('UPDATE student_profiles sp SET availability_before_work=NULL FROM users u WHERE sp.user_id=u.id AND u.id=$1 AND u.availability_status<>$2',[userId,data.availability]);
   await t.none('UPDATE users SET name=$2,availability_status=$3 WHERE id=$1 AND is_student=true',[userId,data.name,data.availability]);
   await t.none(`INSERT INTO student_profiles(user_id,student_number,bio) SELECT id,substring(email,1,8),$2 FROM users WHERE id=$1 AND is_student

@@ -1,9 +1,9 @@
 const validators = require('../../utils/validators');
 
 describe('Sherubtse identity', () => {
-  test.each(['07240057.sherubtse@rub.edu.bt', '07240057.SHERUBTSE@RUB.EDU.BT'])('accepts valid student email %s', email => {
+  test.each(['07240057.sherubtse@rub.edu.bt', '07240057.SHERUBTSE@RUB.EDU.BT', '07220057.sherubtse@rub.edu.bt', '07250067.sherubtse@rub.edu.bt', '07230045.sherubtse@rub.edu.bt'])('accepts valid student email %s', email => {
     expect(validators.isValidStudentEmail(email)).toBe(true);
-    expect(validators.extractStudentNumber(email)).toBe('07240057');
+    expect(validators.extractStudentNumber(email)).toBe(email.slice(0, 8));
   });
   test.each(['student@gmail.com', 'pema.sherubtse@rub.edu.bt', '7240057.sherubtse@rub.edu.bt', '072400571.sherubtse@rub.edu.bt', '', null, 7240057, []])('rejects invalid identity %p', email => {
     expect(validators.isValidStudentEmail(email)).toBe(false);
@@ -11,10 +11,10 @@ describe('Sherubtse identity', () => {
   });
 });
 describe('Password and required fields', () => {
-  test.each(['123456', 'a'.repeat(72), 'valid password'])('accepts password within existing limits', value => {
+  test.each(['12345678', 'a'.repeat(72), 'valid password'])('accepts password within existing limits', value => {
     expect(validators.isValidPassword(value)).toBe(true);
   });
-  test.each(['12345', '', null, 123456, 'a'.repeat(73), '界'.repeat(25)])('rejects invalid password %p', value => {
+  test.each(['1234567', '12345', '', null, 123456, 'a'.repeat(73), '界'.repeat(25)])('rejects invalid password %p', value => {
     expect(validators.isValidPassword(value)).toBe(false);
   });
   test('checks each required field while allowing numeric zero', () => {

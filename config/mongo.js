@@ -14,6 +14,7 @@ async function connectMongo() {
       const selected = client.db(process.env.MONGODB_DB || 'sherubtse_freelance_feedback');
       // createIndex is safe to repeat. Duplicates are reported, never silently deleted.
       await selected.collection('sessions').createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+      await selected.collection('rate_limits').createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
       await selected.collection('ratings').createIndex({ employeeId: 1 });
       await selected.collection('ratings').createIndex({ applicationId: 1, employerId: 1 }, { unique: true });
       database = selected;

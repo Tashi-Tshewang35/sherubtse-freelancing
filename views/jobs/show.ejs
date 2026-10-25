@@ -28,10 +28,10 @@
 </p>
 <% } %>
 <% if(user && user.id===job.employer_id && job.status==='open' && new Date(job.application_opens_at)>new Date()){ %>
-<p class="calendar-notice">Published and scheduled. Employees will see this work when applications open on <%= dateTime(job.application_opens_at) %> (Bhutan time).</p>
+<p class="calendar-notice">Published and scheduled. Visible in student calendars. Applications open on <%= dateTime(job.application_opens_at) %> (Bhutan time).</p>
 <% } %>
 <p>Status: <span class="status <%= job.status %>">
-<%= job.status %>
+<%= jobState(job) %>
 </span>
 </p>
 <p>Applications open: <%= dateTime(job.application_opens_at) %>
@@ -70,9 +70,14 @@
 </div>
   </article>
   <aside class="action-card">
+<p class="safety-note">Payment is handled directly between employer and employee. Agree wages and payment timing before work. Never pay an advance fee.</p>
+<% if(user && user.isStudent){ %><form method="POST" action="/jobs/<%= job.id %>/save">
+<input type="hidden" name="_csrf" value="<%= typeof csrfToken==='string'?csrfToken:'' %>"><button class="btn secondary">Save Job</button></form><% } %>
+<% if(user){ %><p><a href="/reports?job=<%= job.id %>">Report Job</a> · <a href="/reports?user=<%= job.employer_id %>">Report employer</a></p><% } %>
     <% if (user && user.isStudent && applicationsOpen && job.employer_id !== user.id && !application) { %>
       <h2>Apply for this work</h2>
 <form method="POST" action="/jobs/<%= job.id %>/apply" class="stack-form">
+<input type="hidden" name="_csrf" value="<%= typeof csrfToken==='string'?csrfToken:'' %>">
 <label>Short message<textarea name="coverNote" rows="4" maxlength="500" placeholder="Why are you suitable?">
 </textarea>
 </label>
@@ -102,17 +107,21 @@
 <% } %>
     <% if (user && user.isEmployer && user.employerStatus === 'approved' && job.employer_id === user.id) { %>
       <h2>Employer actions</h2>
-<form method="POST" action="/jobs/<%= job.id %>/cancel" data-confirm="Cancel this work? Pending applications and invitations will be withdrawn.">
+<form method="POST" action="/jobs/<%= job.id %>/cancel" data-confirm="Cancel this work? Active applications and recruited placements will be withdrawn and workers notified.">
+<input type="hidden" name="_csrf" value="<%= typeof csrfToken==='string'?csrfToken:'' %>">
 <button class="btn danger">Cancel work</button>
 </form>
+<% if(['draft','open'].includes(job.status) && Number(job.applicant_count)===0){ %><a class="btn secondary" href="/jobs/<%= job.id %>/edit">Edit job</a><% } %>
 <% if(job.status==='draft'){ %>
 <form method="POST" action="/jobs/<%= job.id %>/publish">
+<input type="hidden" name="_csrf" value="<%= typeof csrfToken==='string'?csrfToken:'' %>">
 <button class="btn">Publish draft</button>
 <a class="btn secondary" href="/jobs/<%= job.id %>/edit">Edit draft</a>
 </form>
 <% } %>
 <a class="btn secondary block" href="/jobs/<%= job.id %>/applicants">View Applicants (<%= job.applicant_count %>)</a>
 <form method="POST" action="/jobs/<%= job.id %>/close" data-confirm="Close applications for this work?">
+<input type="hidden" name="_csrf" value="<%= typeof csrfToken==='string'?csrfToken:'' %>">
 <button class="btn danger block">Close applications</button>
 </form>
     <% } %>
@@ -142,6 +151,7 @@
 </span>
 </div>
 <form method="POST" action="/jobs/<%= job.id %>/recruit">
+<input type="hidden" name="_csrf" value="<%= typeof csrfToken==='string'?csrfToken:'' %>">
 <input type="hidden" name="studentId" value="<%= student.id %>">
 <button class="btn">Send invitation</button>
 </form>

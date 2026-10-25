@@ -2,7 +2,7 @@ const nodemailer = require('nodemailer');
 const { emailProvider } = require('./email');
 const { sendGmailApi } = require('./gmailApi');
 
-async function sendVerificationEmail(toEmail, token) {
+async function sendVerificationEmail(toEmail, token, reset = false) {
   try {
     const provider = emailProvider();
     const sender = (process.env.GMAIL_USER || '').trim();
@@ -18,7 +18,7 @@ async function sendVerificationEmail(toEmail, token) {
     if (!['http:', 'https:'].includes(baseUrl.protocol) || baseUrl.username || baseUrl.password) {
       throw Object.assign(new Error('Invalid APP_URL'), { code: 'APP_URL_CONFIG' });
     }
-    const link = new URL('/verify/' + encodeURIComponent(token), baseUrl).href;
+    const link = new URL((reset ? '/reset-password/' : '/verify/') + encodeURIComponent(token), baseUrl).href;
     const safeLink = link.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
     const message = {
       to: [toEmail],
@@ -26,6 +26,11 @@ async function sendVerificationEmail(toEmail, token) {
       text: 'Verify your account within 24 hours: ' + link + '\nIf you did not register, ignore this email.',
       html: '<h2>Welcome to Sherubtse Freelancing</h2><p>Verify your email to activate your account. This link expires in 24 hours.</p><p><a href="' + safeLink + '">Verify my email</a></p><p>If you did not register, ignore this email.</p>',
     };
+    if (reset) {
+      message.subject = 'Reset your Sherubtse Freelancing password';
+      message.text = 'Reset your password within 30 minutes: ' + link + '\nIf you did not request this, ignore this email.';
+      message.html = '<h2>Reset your password</h2><p>This single-use link expires in 30 minutes.</p><p><a href="' + safeLink + '">Reset password</a></p><p>If you did not request this, ignore this email.</p>';
+    }
     if (provider === 'gmail-api') {
       await sendGmailApi({ ...message, from: { name: 'Sherubtse Freelancing', address: sender } });
     } else if (provider === 'resend') {
@@ -62,4 +67,4 @@ async function sendVerificationEmail(toEmail, token) {
     throw error;
   }
 }
-module.exports = { sendVerificationEmail };
+module.exports = { sendVerificationEmail, sendPasswordResetEmail: (email, token) => sendVerificationEmail(email, token, true) };

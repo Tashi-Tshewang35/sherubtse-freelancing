@@ -6,6 +6,7 @@
 <p>Application updates and account decisions, all in one place.</p>
 </div>
 <form method="POST" action="/notifications/read-all">
+<input type="hidden" name="_csrf" value="<%= typeof csrfToken==='string'?csrfToken:'' %>">
 <button class="btn secondary">Mark all as read</button>
 </form>
 </div>
@@ -35,6 +36,7 @@
 </div>
 <% if(!n.is_read){ %>
 <form method="POST" action="/notifications/<%= n.id %>/read">
+<input type="hidden" name="_csrf" value="<%= typeof csrfToken==='string'?csrfToken:'' %>">
 <button class="btn secondary">Mark as read</button>
 </form>
 <% } %>
