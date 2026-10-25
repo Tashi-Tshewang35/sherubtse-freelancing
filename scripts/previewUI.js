@@ -24,7 +24,7 @@ app.use((req, res, next) => {
   res.locals.user = ['/', '/login', '/signup', '/resend-verification', '/check-email', '/verified'].includes(req.path) ? null : { id: current.id, name: current.name, isStudent: current.is_student, isEmployer: current.is_employer, employerStatus: current.employer_status, isAdmin: current.is_admin };
   res.locals.title = 'Design preview'; res.locals.profile = current; next();
 });
-app.get('/', (req, res) => res.render('index', { jobs,statistics:{students:24,employers:8,completed:42} }));
+app.get('/', (req, res) => res.render('index', { jobs }));
 app.get('/jobs', (req, res) => res.render('jobs/index', { jobs }));
 app.get('/jobs/new', (req, res) => res.render('jobs/new', { draft: null }));
 app.get('/jobs/:id/applicants', (req, res) => res.render('jobs/applicants', { job: jobs[0], applicants: applications.map((a, i) => ({ ...a, student_id: 10, name: ['Pema Choden', 'Sonam Wangmo', 'Karma Dorji'][i], email: profile.email, skills: 'Food service, Event assistance', programme: profile.programme, study_year: 'Year 2', schedule_availability: 'active', completed_count: 3, average_rating: 4.8, rating_count: 3, cover_note: 'I would love to help your team.', status: ['pending', 'accepted', 'completed'][i] })) }));
@@ -32,7 +32,7 @@ app.get('/jobs/:id', (req, res) => res.render('jobs/show', { job: jobs.find(j =>
 app.get('/dashboard', (req, res) => res.render('dashboards/main', { mode:req.query.mode||'student',dualRole:req.query.role==='dual',recommendations:jobs,deadlines:jobs,studentApplications: applications, employerJobs: jobs, ratings, notifications }));
 app.get('/profile', (req, res) => res.render('profiles/show', { own: true, applications, jobs, ratings, history: [], recruited: 3, skills: profile.skills, types: [{ id: 1, name: 'Restaurant or cafe' }, { id: 2, name: 'Other' }] }));
 app.get('/notifications', (req, res) => res.render('notifications', { notifications }));
-app.get('/admin', (req, res) => res.render('dashboards/admin', { page:1,hasNext:false,reports:[],moderationJobs:jobs,moderationRatings:ratings.map((r,i)=>({...r,_id:String(i),employeeId:10})),auditRecords:[],applicationHistory:[],pendingEmployers: [{ id: 20, name: 'Kanglung Community Cafe', email: 'cafe@example.com', created_at: date(-1, 10) }], accounts: [profile], applications: applications.map(a => ({ ...a, student_id: 10, name: profile.name })), filters: { q: '', role: '', approval: '', status: '' } }));
+app.get('/admin', (req, res) => res.render('dashboards/admin', { statistics:{students:24,employers:8,completed:42},page:1,hasNext:false,reports:[],moderationJobs:jobs,moderationRatings:ratings.map((r,i)=>({...r,_id:String(i),employeeId:10})),auditRecords:[],applicationHistory:[],pendingEmployers: [{ id: 20, name: 'Kanglung Community Cafe', email: 'cafe@example.com', created_at: date(-1, 10) }], accounts: [profile], applications: applications.map(a => ({ ...a, student_id: 10, name: profile.name })), filters: { q: '', role: '', approval: '', status: '' } }));
 app.get('/api/calendar', (req, res) => res.json(jobs.map((j, i) => ({ ...j, start: j.start_at, end: j.end_at, status: ['open', 'accepted', 'personal'][i], event_type: i === 2 ? 'personal' : 'work' }))));
 for (const [slug,page] of Object.entries(require('../config/supportPages'))) app.get('/'+slug,(req,res)=>res.render('support/page',{page}));
 app.get('/saved-jobs',(req,res)=>res.render('jobs/saved',{jobs}));

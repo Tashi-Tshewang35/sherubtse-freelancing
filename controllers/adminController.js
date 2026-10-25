@@ -20,7 +20,8 @@ exports.dashboard = async (req, res, next) => {
     const moderationRatings=await require('../config/mongo').getMongoDb().collection('ratings').find({}).sort({createdAt:-1}).skip((page-1)*25).limit(25).toArray();
     const auditRecords=await db.any('SELECT * FROM audit_records ORDER BY created_at DESC LIMIT 25 OFFSET $1',[(page-1)*25]);
     const applicationHistory=await db.any('SELECT * FROM application_status_history ORDER BY changed_at DESC LIMIT 25 OFFSET $1',[(page-1)*25]);
-    res.render('dashboards/admin', { accounts,applications,filters,page,reports,moderationJobs,moderationRatings,auditRecords,applicationHistory,
+    const statistics=await require('../config/db').one(`SELECT (SELECT COUNT(*) FROM users WHERE is_student AND is_verified AND account_status='active') AS students,(SELECT COUNT(*) FROM users WHERE is_employer AND employer_status='approved' AND account_status='active') AS employers,(SELECT COUNT(*) FROM applications WHERE status='completed') AS completed`);
+    res.render('dashboards/admin', { statistics,accounts,applications,filters,page,reports,moderationJobs,moderationRatings,auditRecords,applicationHistory,
       hasNext: accounts.length===25 || applications.length===25 || reports.length===25 || moderationJobs.length===25 || moderationRatings.length===25 || auditRecords.length===25 || applicationHistory.length===25,
       title: 'Admin Dashboard', pendingEmployers: await User.listPendingEmployers(),
     });

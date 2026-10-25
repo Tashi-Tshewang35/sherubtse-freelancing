@@ -19,6 +19,7 @@ beforeAll(async () => {
   pending = await fixtures.account(false,true,false,false);
 });
 afterAll(() => fixtures.cleanup());
+beforeEach(async()=>{await require('../config/mongo').getMongoDb().collection('rate_limits').deleteMany({});});
 
 describe('Public pages and safe errors', () => {
   test.each(['/', '/login', '/signup', '/jobs', '/resend-verification'])('GET %s renders', async path => {
@@ -66,7 +67,18 @@ describe('Student, employer, dual and admin authorization', () => {
     await (await login(pending)).get('/jobs/new').expect(403);
   });
   test('only administrator can open account management', async () => {
-    await (await login(admin)).get('/admin').expect(200);
+    const administrator=await login(admin);
+    const overview=await administrator.get('/admin').expect(200);
+    expect(overview.text).toContain('aria-label="Platform statistics"');
+    expect(overview.text).toContain('Verified students');
+    expect(overview.text).toContain('Approved employers');
+    expect(overview.text).toContain('Completed placements');
+    for(const client of [request(app),await login(student),await login(employer),await login(dual),administrator]){
+      expect((await client.get('/')).text).not.toContain('aria-label="Platform statistics"');
+    }
+    for(const user of [student,employer,dual]){
+      expect((await (await login(user)).get('/dashboard')).text).not.toContain('aria-label="Platform statistics"');
+    }
     await (await login(student)).get('/admin').expect(403);
     await (await login(employer)).get('/admin').expect(403);
   });

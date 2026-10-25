@@ -6,8 +6,7 @@ const User = require('../models/User');
 exports.home = async (req, res, next) => {
   try {
     const jobs = req.session.user && !req.session.user.isStudent && !req.session.user.isAdmin ? [] : await Job.getOpenJobs();
-    const statistics=await require('../config/db').one(`SELECT (SELECT COUNT(*) FROM users WHERE is_student AND is_verified AND account_status='active') AS students,(SELECT COUNT(*) FROM users WHERE is_employer AND employer_status='approved' AND account_status='active') AS employers,(SELECT COUNT(*) FROM applications WHERE status='completed') AS completed`);
-    res.render('index', { title: 'Sherubtse Freelancing', jobs: jobs.slice(0, 6),statistics });
+    res.render('index', { title: 'Sherubtse Freelancing', jobs: jobs.slice(0, 6) });
   } catch (error) { next(error); }
 };
 
