@@ -20,6 +20,11 @@ test('professional upgrade can repeat without losing existing identity or extend
       // Act: rerun the combined upgrade twice inside a rolled-back test transaction.
       await transaction.none(sql);
       await transaction.none(sql);
+      const security=fs.readFileSync('database/migrations/002_security_and_trust.sql','utf8').replace(/^BEGIN;\s*/m,'').replace(/^COMMIT;\s*/m,'');
+      await transaction.none(security);await transaction.none(security);
+      await transaction.none("UPDATE applications SET status='under_review' WHERE id=$1",[application.id]);
+      await transaction.none(sql);await transaction.none(security);
+      await transaction.none("UPDATE applications SET status='in_progress' WHERE id=$1",[application.id]);
       // Assert: identity, description and extended progress survive.
       expect(await transaction.one('SELECT name,email FROM users WHERE id=$1',[student.id])).toEqual({ name:'Keep this student',email });
       expect((await transaction.one('SELECT description FROM jobs WHERE id=$1',[job.id])).description).toBe('Existing description');

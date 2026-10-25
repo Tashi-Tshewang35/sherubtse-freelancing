@@ -1,0 +1,5 @@
+<%- include('../partials/header') %>
+<article class="policy-page"><span class="eyebrow">Community support</span><h1><%= page.title %></h1><p class="lead"><%= page.intro %></p>
+<% page.sections.forEach(([heading,body])=>{ %><section class="panel"><h2><%= heading %></h2><p><%= body %></p></section><% }) %>
+<nav class="row-actions" aria-label="Support options"><a class="btn" href="/reports">Reports and complaints</a><a class="btn secondary" href="/faq">FAQ</a><a href="/help">Help Centre</a></nav></article>
+<%- include('../partials/footer') %>

@@ -21,6 +21,12 @@ test('an explicitly configured local database URL is respected', () => {
   preload({ DATABASE_URL: 'postgresql://127.0.0.1/local_database' });
   expect(process.env.DATABASE_URL).toBe('postgresql://127.0.0.1/local_database');
 });
+test('an inherited Mongo alias cannot override the local Mongo configuration', () => {
+  process.env.MONGO_URI='mongodb://unrelated-host/unrelated_database';
+  preload({MONGODB_URI:'mongodb://127.0.0.1/local_database'});
+  expect(process.env.MONGO_URI).toBeUndefined();
+  expect(process.env.MONGODB_URI).toBe('mongodb://127.0.0.1/local_database');
+});
 test('missing local environment fails instead of connecting using inherited credentials', () => {
   expect(() => preload(undefined, new Error('ENOENT'))).toThrow('Local development requires a readable .env file.');
 });

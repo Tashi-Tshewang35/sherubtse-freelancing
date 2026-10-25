@@ -1,4 +1,68 @@
-> **Current Unit 6 preparation:** Use [docs/UNIT6_DELIVERY.md](docs/UNIT6_DELIVERY.md) for setup, results and limitations, plus the [guide index](docs/README.md). The entry point is now `server.js`; `app.js` only exports Express. Testing now uses Jest/Supertest with separate test databases. Older update reports below are historical.
+> **Current platform upgrade:** Follow [docs/PLATFORM_UPGRADE.md](docs/PLATFORM_UPGRADE.md) for the current architecture, migrations, environment variables, seed safety, test commands, and Render deployment. Migration **002** is required before starting this version. Earlier setup notes below are historical where they differ.
+
+## Current setup and release commands
+
+Use Node.js 22 or newer. Preserve an existing `.env`; for a new checkout only, copy
+`.env.example` to `.env` and fill placeholders privately. Never commit credentials.
+
+```sh
+npm ci
+```
+
+New PostgreSQL databases need `database/postgresql_schema.sql`, then
+`database/migrations/001_professional_upgrade.sql`, then
+`database/migrations/002_security_and_trust.sql`, in that order. Existing upgraded
+databases need only migration 002. Back up first; the explicit command below makes
+a local `pg_dump` backup and refuses to migrate if that fails:
+
+```sh
+npm run migrate:security
+npm run seed:admin
+npm run dev
+```
+
+Administrator setup uses `ADMIN_NAME`, `ADMIN_EMAIL`, and `ADMIN_PASSWORD`; ordinary
+registration never grants administrator access. Passwords need at least 8 characters
+and must fit within bcrypt's 72-byte limit. Existing hashes remain usable.
+
+MongoDB Atlas: create a database user with access only to the application database,
+permit the hosting service's network access, and privately set `MONGODB_URI` and
+`MONGODB_DB`. The application creates session, rate-limit, and rating indexes without
+deleting documents. PostgreSQL remains required for core records.
+
+Email: retain the existing provider settings. `gmail` uses `GMAIL_USER` and
+`GMAIL_APP_PASSWORD`; `gmail-api` additionally uses `GOOGLE_CLIENT_ID`,
+`GOOGLE_CLIENT_SECRET`, and `GOOGLE_REFRESH_TOKEN`; `resend` uses `RESEND_API_KEY` and
+`EMAIL_FROM`. Set `APP_URL` to the HTTPS public origin. Verification links last 24
+hours; single-use password-reset links last 30 minutes. No new required Render
+variables were introduced.
+
+Tests only use the separately named PostgreSQL and MongoDB test databases:
+
+```sh
+npm run test:setup
+npm test
+npm run lint
+npm run test:start
+npm audit --omit=dev
+```
+
+Development demonstration data is optional: `npm run seed:demo`. It requires
+`NODE_ENV=development`, `ALLOW_DEMO_SEED=true`, `DEMO_SEED_PASSWORD`, and local
+PostgreSQL/MongoDB database names ending in `_demo`. It refuses production and
+remote targets, never deletes existing records, and never prints passwords.
+
+Render: use Node 22+, build command `npm ci --omit=dev`, start command `npm start`,
+and health-check path `/health`. Configure `NODE_ENV=production`, `SESSION_SECRET`,
+`DATABASE_URL` (or the existing `DB_*` variables), MongoDB, email, and administrator
+settings privately. The server binds to `process.env.PORT`. Docker uses the same
+production dependencies and `node server.js`; EJS needs no frontend build step.
+Apply migration 002 with a backup before deploying this branch. Merge and deployment
+require the owner's approval; neither is performed by these commands automatically.
+
+---
+
+The following sections retain earlier project documentation for reference.
 
 > **October 2026 redesign:** See [REDESIGN.md](REDESIGN.md) for the current setup, migration, verification results, changed files and manual checks. Existing installations need `npm.cmd run migrate:ui` after the profile migration. Your existing `.env` should be retained.
 

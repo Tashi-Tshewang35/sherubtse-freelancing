@@ -16,7 +16,7 @@ async function getEvents(user) {
               WHEN j.status = 'completed' THEN 'completed'
               WHEN j.status = 'closed' OR j.application_closes_at <= NOW() THEN 'closed'
               WHEN j.application_opens_at > NOW() THEN 'scheduled'
-              WHEN a.status = 'pending' THEN 'applied'
+              WHEN a.status IN ('pending','under_review') THEN 'applied'
               ELSE 'open'
             END AS status,
             'work' AS event_type
@@ -27,9 +27,9 @@ async function getEvents(user) {
      WHERE ($3 AND j.employer_id = $1)
         OR ($2 AND (
           a.id IS NOT NULL
-          OR (j.status = 'open' AND j.published_at IS NOT NULL
+          OR (NOT j.is_suspended AND e.account_status='active' AND j.status = 'open' AND j.published_at IS NOT NULL
               AND e.employer_status = 'approved' AND e.is_verified
-              AND j.application_opens_at <= NOW() AND j.application_closes_at > NOW())
+              AND j.application_closes_at > NOW())
         ))
      ORDER BY j.start_at, j.id`,
     [user.id, Boolean(user.isStudent), Boolean(user.isEmployer)]

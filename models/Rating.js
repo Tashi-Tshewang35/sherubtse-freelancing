@@ -14,7 +14,7 @@ async function createRating({ jobId, applicationId, employerId, employeeId, scor
 async function refreshSummary(employeeId) {
   const collection = getMongoDb().collection('ratings');
   const rows = await collection.aggregate([
-    { $match: { employeeId: Number(employeeId) } },
+    { $match: { employeeId: Number(employeeId), hidden: { $ne: true } } },
     { $group: { _id: '$employeeId', average: { $avg: '$score' }, count: { $sum: 1 } } },
   ]).toArray();
   const summary = rows[0] || { average: 0, count: 0 };
@@ -31,8 +31,8 @@ async function refreshSummary(employeeId) {
 
 async function getEmployeeRatings(employeeId) {
   return getMongoDb().collection('ratings')
-    .find({ employeeId: Number(employeeId) })
+    .find({ employeeId: Number(employeeId), hidden: { $ne: true } })
     .sort({ createdAt: -1 }).toArray();
 }
 
-module.exports = { createRating, getEmployeeRatings };
+module.exports = { createRating, getEmployeeRatings, refreshSummary };

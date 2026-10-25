@@ -1,0 +1,10 @@
+<%- include('../partials/header') %>
+<section class="page-title left"><span class="eyebrow">Trust and safety</span><h1>Reports and complaints</h1><p>Report unsafe work, a user, or a dispute. Do not include passwords, identity documents or bank details.</p></section>
+<section class="panel"><h2>Send a report</h2><form method="POST" action="/reports" class="stack-form">
+<input type="hidden" name="_csrf" value="<%= typeof csrfToken==='string'?csrfToken:'' %>">
+<label>Type<select name="kind"><option value="complaint">Complaint or dispute</option><option value="job" <%= targetJob?'selected':'' %>>Report job</option><option value="user" <%= targetUser?'selected':'' %>>Report user</option></select></label>
+<div class="form-grid"><label>Job number (if relevant)<input name="jobId" inputmode="numeric" pattern="[0-9]*" value="<%= targetJob %>"></label><label>User number (if relevant)<input name="userId" inputmode="numeric" pattern="[0-9]*" value="<%= targetUser %>"></label></div>
+<label>Subject<input name="subject" maxlength="150" required></label><label>What happened?<textarea name="details" minlength="10" maxlength="3000" rows="5" required></textarea></label><button class="btn">Submit report</button></form></section>
+<section class="panel"><h2>Your reports</h2><% if(!reports.length){ %><p class="empty">Your submitted reports and their updates will appear here.</p><% } %>
+<% reports.forEach(r=>{ %><article class="rating-card"><h3>#<%= r.id %> · <%= r.subject %></h3><span class="status"><%= r.status.replace('_',' ') %></span><p><%= r.details %></p><p><strong>Administrator response:</strong> <%= r.resolution || 'Waiting for review.' %></p><small>Updated <%= dateTime(r.updated_at) %></small></article><% }) %></section>
+<%- include('../partials/footer') %>

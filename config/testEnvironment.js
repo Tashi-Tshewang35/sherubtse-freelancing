@@ -24,6 +24,9 @@ function loadTestEnvironment() {
   process.env.DB_USER ||= 'postgres';
   process.env.DB_SSL ||= 'false';
   process.env.MONGODB_URI ||= 'mongodb://127.0.0.1:27017';
+  // Production also accepts MONGO_URI. Never let an inherited alias override
+  // the explicitly isolated test connection selected above.
+  delete process.env.MONGO_URI;
   process.env.SESSION_SECRET = 'unit6-test-only-session-secret-not-for-production';
   process.env.APP_URL = 'http://localhost:3000';
   process.env.EMAIL_PROVIDER = 'gmail';

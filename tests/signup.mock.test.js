@@ -1,5 +1,5 @@
 jest.mock('../config/mailer', () => ({ sendVerificationEmail: jest.fn().mockResolvedValue(undefined) }));
-const request = require('supertest');
+const request = require('./helpers/http');
 const app = require('../app');
 const db = require('../config/db');
 const { sendVerificationEmail } = require('../config/mailer');
@@ -13,7 +13,7 @@ test('signup gives the mocked mailer a token whose hash is stored, then verifies
   const email = String(60000000+crypto.randomInt(9999999))+'.sherubtse@rub.edu.bt';
   const agent = request.agent(app);
   // Act: go through the real signup controller and PostgreSQL model.
-  const response = await agent.post('/signup').type('form').send({ name:'Unit 6 student',email,password:fixtures.password,accountType:'both' });
+  const response = await agent.post('/signup').type('form').send({ name:'Unit 6 student',email,password:fixtures.password,confirmPassword:fixtures.password,accountType:'both' });
   const saved = await db.one('SELECT id,is_verified,verification_token FROM users WHERE email=$1',[email]);
   fixtures.track(saved.id);
   // Assert: sending is mocked, but identity and verification state are real.

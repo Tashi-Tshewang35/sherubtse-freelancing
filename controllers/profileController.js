@@ -14,10 +14,13 @@ exports.show=async(req,res,next)=>{
   }
   const profile=await Profile.get(id);
   if(!profile) return res.status(404).render('error',{title:'Not found',message:'Account not found.'});
-  const applications=profile.is_student ? await Application.getStudentApplications(id):[];
-  const jobs=profile.is_employer ? await Job.getByEmployer(id):[];
+  let applications=profile.is_student ? await Application.getStudentApplications(id):[];
+  const privateAccess=own || req.session.user.isAdmin;
+  if(!privateAccess) applications=applications.filter(a=>a.employer_id===req.session.user.id);
+  const jobs=profile.is_employer && privateAccess ? await Job.getByEmployer(id):[];
   const ratings=profile.is_student ? await Rating.getEmployeeRatings(id):[];
-  const history=await db.any(`SELECT h.*,a.job_id,j.title FROM application_status_history h JOIN applications a ON a.id=h.application_id JOIN jobs j ON j.id=a.job_id WHERE a.student_id=$1 ORDER BY h.changed_at`,[id]);
+  const rated=new Set(ratings.map(r=>Number(r.applicationId)));applications.forEach(a=>{a.rated=rated.has(a.id);});
+  const history=await db.any(`SELECT h.*,a.job_id,j.title FROM application_status_history h JOIN applications a ON a.id=h.application_id JOIN jobs j ON j.id=a.job_id WHERE a.student_id=$1 AND ($2 OR j.employer_id=$3) ORDER BY h.changed_at`,[id,privateAccess,req.session.user.id]);
   const recruited=await db.one(`SELECT COUNT(*)::int AS count FROM applications a JOIN jobs j ON j.id=a.job_id WHERE j.employer_id=$1 AND a.status IN ('accepted','in_progress','completed')`,[id]);
   res.render('profiles/show',{title:'Account profile',profile,own,applications,jobs,ratings,history,recruited:recruited.count,skills:await Profile.skills(),types:await Profile.types()});
  }catch(e){next(e);}

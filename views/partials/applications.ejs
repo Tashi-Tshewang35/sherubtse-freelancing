@@ -41,14 +41,14 @@
 <span class="status <%= a.status %>">
 <%= a.status==='withdrawn' && (a.decision_note||'').startsWith('Automatically') ? 'Automatically withdrawn' : statusLabel(a.status) %>
 </span>
-<% if(['pending','accepted','in_progress','completed'].includes(a.status)){ const steps=['pending','accepted','in_progress','completed']; const position=steps.indexOf(a.status); %>
+<% if(['pending','under_review','accepted','in_progress','completed'].includes(a.status)){ const steps=['pending','under_review','accepted','in_progress','completed']; const position=steps.indexOf(a.status); %>
 <ol class="progress-steps" aria-label="Application progress">
 <% steps.forEach((step,index)=>{ %>
-<li class="<%= index<position ? 'done' : index===position ? 'current' : '' %>" <%- index===position ? 'aria-current="step"' : '' %>>
+<li class="<%= index<position || a.rated ? 'done' : index===position ? 'current' : '' %>" <%- index===position && !a.rated ? 'aria-current="step"' : '' %>>
 <%= statusLabel(step) %>
 </li>
 <% }) %>
-</ol>
+<li class="<%= a.rated ? 'done' : '' %>" <%- a.rated ? 'aria-current="step"' : '' %>>Rated</li></ol>
 <% } %>
 <% if(a.status==='withdrawn'){ %>
 <p class="small">Withdrawn by you, a posting cancellation or a conflicting confirmed schedule.</p>
@@ -58,8 +58,9 @@
 <%= a.decision_note %>
 </p>
 <% } %>
-<% if(allowWithdraw && a.status==='pending'){ %>
+<% if(allowWithdraw && ['pending','under_review'].includes(a.status)){ %>
 <form method="POST" action="/applications/<%= a.id %>/withdraw" data-confirm="Withdraw this application?">
+<input type="hidden" name="_csrf" value="<%= typeof csrfToken==='string'?csrfToken:'' %>">
 <button class="btn secondary">Withdraw</button>
 </form>
 <% } %>
@@ -67,9 +68,11 @@
 <p class="small">Confirming withdraws overlapping pending applications and invitations. Your schedule becomes unavailable for this time.</p>
 <div class="row-actions">
 <form method="POST" action="/applications/<%= a.id %>/confirm" data-confirm="Confirm this invitation and withdraw overlapping applications?">
+<input type="hidden" name="_csrf" value="<%= typeof csrfToken==='string'?csrfToken:'' %>">
 <button class="btn">Confirm invitation</button>
 </form>
 <form method="POST" action="/applications/<%= a.id %>/decline">
+<input type="hidden" name="_csrf" value="<%= typeof csrfToken==='string'?csrfToken:'' %>">
 <button class="btn secondary">Decline</button>
 </form>
 </div>

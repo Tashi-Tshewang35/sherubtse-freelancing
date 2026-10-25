@@ -4,7 +4,10 @@ const Job = require('../models/Job');
 const User = require('../models/User');
 
 exports.list = async (req, res, next) => {
-  try { res.render('jobs/index', { title: 'Available Jobs', jobs: req.session.user && !req.session.user.isStudent && !req.session.user.isAdmin ? [] : await Job.getOpenJobs() }); }
+  try {
+    const allJobs=req.session.user && !req.session.user.isStudent && !req.session.user.isAdmin ? [] : await Job.getOpenJobs();
+    res.render('jobs/index', { title:'Available Jobs',jobs:require('../utils/jobSearch').filterJobs(allJobs,req.query),filters:req.query,workTypes:[...new Set(allJobs.map(j=>j.work_type))] });
+  }
   catch (error) { next(error); }
 };
 
@@ -33,17 +36,17 @@ exports.create = async (req, res, next) => {
       endAt: dateInput(req.body.endAt), urgency: req.body.urgency,
       opensAt: dateInput(req.body.opensAt), closesAt: dateInput(req.body.closesAt), status: req.body.status === 'draft' ? 'draft' : 'open',
     };
-    if (data.title.length>120 || data.description.length>2000 || data.location.length>150 || data.workType.length>60 || !data.opensAt || !data.closesAt || new Date(data.opensAt) >= new Date(data.closesAt) || new Date(data.closesAt) > new Date(data.startAt) || !Number.isFinite(data.wageRate) || !Number.isInteger(data.workersNeeded) || data.workersNeeded > 50 || !['hour','day','task'].includes(data.wageUnit) || !['normal','urgent'].includes(data.urgency) || !data.title || !data.description || !data.workType || !data.location ||
+    if (!data.requirements || data.title.length>120 || data.description.length>2000 || data.location.length>150 || data.workType.length>60 || !data.opensAt || !data.closesAt || new Date(data.opensAt) >= new Date(data.closesAt) || new Date(data.closesAt) > new Date(data.startAt) || !Number.isFinite(data.wageRate) || !Number.isInteger(data.workersNeeded) || data.workersNeeded > 50 || !['hour','day','task'].includes(data.wageUnit) || !['normal','urgent'].includes(data.urgency) || !data.title || !data.description || !data.workType || !data.location ||
         data.wageRate <= 0 || data.workersNeeded < 1 || !data.startAt || !data.endAt ||
         new Date(data.endAt) <= new Date(data.startAt)) {
       req.session.error = 'Enter valid job details, wage, workers and working time.';
       return res.redirect('/jobs/new');
     }
     const job = req.params.id ? await Job.updateDraft(req.params.id,req.session.user.id,data) : await Job.createJob(req.session.user.id, data);
-    if(!job) return res.status(403).render('error',{title:'Cannot edit',message:'Only your drafts can be edited.'});
+    if(!job) return res.status(403).render('error',{title:'Cannot edit',message:'Only your drafts or open jobs without applications can be edited.'});
     req.session.success = job.status === 'draft' ? 'Draft saved. Edit or publish it from this page.'
       : new Date(job.application_opens_at) > new Date()
-        ? `Work published and scheduled. Employee calendars will show it when applications open on ${new Date(job.application_opens_at).toLocaleString('en-GB', {timeZone:'Asia/Thimphu'})} (Bhutan time).`
+        ? `Work published and scheduled. Students can view the schedule now. Applications open on ${new Date(job.application_opens_at).toLocaleString('en-GB', {timeZone:'Asia/Thimphu'})} (Bhutan time).`
         : new Date(job.application_closes_at) <= new Date()
           ? 'Work saved, but its application deadline has passed. It is not available in employee calendars.'
           : 'Work published. It is now available in employee calendars.';
@@ -61,5 +64,5 @@ exports.close = async (req, res, next) => {
 
 exports.publish = async (req,res,next) => { try { const job=await Job.publish(req.params.id,req.session.user.id); req.session[job?'success':'error']=job?'Work published.':'Only an unexpired draft can be published.'; res.redirect('/dashboard'); } catch(e){next(e);} };
 
-exports.edit=async(req,res,next)=>{try{const draft=await Job.getById(req.params.id);if(!draft||draft.employer_id!==req.session.user.id||draft.status!=='draft')return res.status(403).render('error',{title:'Cannot edit',message:'Only your drafts can be edited.'});res.render('jobs/new',{title:'Edit draft',draft});}catch(e){next(e);}};
-exports.cancel=async(req,res,next)=>{try{await db.tx(async t=>{const j=await t.oneOrNone("UPDATE jobs SET status='cancelled' WHERE id=$1 AND employer_id=$2 AND status IN ('draft','open','closed') RETURNING id",[req.params.id,req.session.user.id]);if(j)await t.none("UPDATE applications SET status='withdrawn',decided_at=NOW(),decision_note='Withdrawn because the employer cancelled this work.' WHERE job_id=$1 AND status='pending'",[j.id]);});res.redirect('/dashboard');}catch(e){next(e);}};
+exports.edit=async(req,res,next)=>{try{const draft=await Job.getById(req.params.id);if(!draft||draft.employer_id!==req.session.user.id||!['draft','open'].includes(draft.status))return res.status(403).render('error',{title:'Cannot edit',message:'Only your drafts can be edited.'});res.render('jobs/new',{title:'Edit job',draft});}catch(e){next(e);}};
+exports.cancel=async(req,res,next)=>{try{await require('../models/WorkLifecycle').cancel(req.params.id,req.session.user.id);req.session.success='Work cancelled. Affected applicants have been notified and availability updated.';res.redirect('/dashboard');}catch(e){next(e);}};

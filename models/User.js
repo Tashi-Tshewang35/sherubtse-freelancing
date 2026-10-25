@@ -24,7 +24,7 @@ function findByEmail(email) {
 function findById(id) {
   return db.oneOrNone(
     `SELECT id, name, email, is_student, is_employer, employer_status,
-            is_verified, is_admin, availability_status, created_at
+            is_verified, is_admin, availability_status, created_at, account_status, session_version
      FROM users WHERE id = $1`,
     [id]
   );
@@ -43,7 +43,7 @@ function listAvailableStudents(startAt, endAt) {
     `SELECT u.id, u.name, u.email, u.availability_status
      FROM users u
      WHERE u.is_student = true
-       AND u.is_verified = true
+       AND u.is_verified = true AND u.account_status='active'
        AND u.availability_status = 'active'
        AND NOT EXISTS (
          SELECT 1
@@ -116,9 +116,11 @@ function rejectEmployer(userId) {
 
 function updateAvailability(userId, status) {
   return db.tx(async t => {
-    const user = await t.one('UPDATE users SET availability_status=$2 WHERE id=$1 RETURNING id,availability_status', [userId,status]);
+    await t.one('SELECT id FROM users WHERE id=$1 FOR UPDATE', [userId]);
+    const busy = await t.oneOrNone("SELECT id FROM applications WHERE student_id=$1 AND status IN ('accepted','in_progress') LIMIT 1", [userId]);
+    const user = await t.one('UPDATE users SET availability_status=$2 WHERE id=$1 RETURNING id,availability_status', [userId,busy ? 'inactive' : status]);
     // A deliberate manual change must not be overridden when work completes.
-    await t.none('UPDATE student_profiles SET availability_before_work=NULL WHERE user_id=$1', [userId]);
+    await t.none('UPDATE student_profiles SET availability_before_work=$2 WHERE user_id=$1', [userId,busy ? status : null]);
     return user;
   });
 }

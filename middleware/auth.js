@@ -3,7 +3,7 @@ async function refreshUser(req, res, next) {
  try {
   if (req.session.user) {
    const u = await User.findById(req.session.user.id);
-   req.session.user = u && u.is_verified ? { id:u.id, name:u.name, email:u.email, isStudent:u.is_student, isEmployer:u.is_employer, employerStatus:u.employer_status, isAdmin:u.is_admin } : null;
+   req.session.user = u && u.is_verified && u.account_status === 'active' && (req.session.user.sessionVersion || 0) === u.session_version ? { id:u.id, name:u.name, email:u.email, isStudent:u.is_student, isEmployer:u.is_employer, employerStatus:u.employer_status, isAdmin:u.is_admin, sessionVersion:u.session_version } : null;
    res.locals.user = req.session.user;
   }
   next();

@@ -13,7 +13,7 @@ test('Bhutan calendar dates and exclusive multi-day end boundaries', () => {
 
 test('calendar renders work, refreshes newly published opportunities, navigates and reports errors', async () => {
   class Node {
-    constructor(tag = 'div') { this.tag = tag; this.children = []; this.listeners = {}; this.attributes = {}; this.classList = { add: () => {} }; this.hidden = false; }
+    constructor(tag = 'div') { this.tag = tag; this.dataset = {}; this.children = []; this.listeners = {}; this.attributes = {}; this.classList = { add: () => {} }; this.hidden = false; }
     append(...nodes) { this.children.push(...nodes); }
     appendChild(node) { this.children.push(node); return node; }
     replaceChildren(...nodes) { this.children = nodes; }

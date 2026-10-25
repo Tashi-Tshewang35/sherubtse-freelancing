@@ -35,6 +35,7 @@ async function setup() {
     } else {
       await target.none(fs.readFileSync(path.join(__dirname, '../database/migrations/001_professional_upgrade.sql'), 'utf8'));
     }
+    await target.none(fs.readFileSync(path.join(__dirname, '../database/migrations/002_security_and_trust.sql'), 'utf8'));
     mongo = new MongoClient(process.env.MONGODB_URI, { serverSelectionTimeoutMS: 5000 });
     await mongo.connect();
     await mongo.db(TEST_MONGO).collection('ratings').createIndex({ employeeId: 1 });

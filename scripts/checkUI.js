@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
 const ejs = require('ejs');
-const roots = ['app.js', 'server.js', 'jest.config.js', 'jest.setup.js', 'jest.afterEnv.js', 'utils', 'config', 'controllers', 'middleware', 'models', 'routes', 'scripts', 'public/js', 'database', 'tests', 'views'];
+const roots = ['app.js', 'server.js', 'jest.config.js', 'jest.setup.js', 'jest.afterEnv.js', 'utils', 'config', 'controllers', 'middleware', 'models', 'routes', 'services', 'scripts', 'public/js', 'database', 'tests', 'views'];
 function files(entry) {
   return fs.statSync(entry).isDirectory() ? fs.readdirSync(entry).flatMap(name => files(path.join(entry, name))) : [entry];
 }

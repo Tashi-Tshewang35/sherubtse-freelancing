@@ -52,7 +52,7 @@ test('PostgreSQL registration, SMTP failure recovery, resend, expiry, verificati
   const suffix = Date.now().toString(36);
   for (const [index, type] of ['student','employee','employer','both'].entries()) {
    const email = type === 'employer' ? 'verification-' + suffix + '@example.com' : (70000000 + Math.floor(Math.random()*9000000)).toString() + '.sherubtse@rub.edu.bt';
-   const data = { name:'Verification test', email, password, accountType:type };
+   const data = { name:'Verification test', email, password, confirmPassword:password, accountType:type };
    let response = await post('/signup',data);
    assert.equal(response.status,200);
    assert.ok((response.text).includes('Check your email'));
@@ -99,7 +99,7 @@ test('PostgreSQL registration, SMTP failure recovery, resend, expiry, verificati
   }
   const email='failure-'+suffix+'@example.com';
   shouldFail=true;
-  const data={name:'Delivery failure test',email,password,accountType:'employer'};
+  const data={name:'Delivery failure test',email,password,confirmPassword:password,accountType:'employer'};
   let response=await post('/signup',data); assert.equal(response.headers['location'],'/resend-verification');
   const user=await User.findByEmail(email); ids.push(user.id); assert.equal(user.verification_sent_at,null);
   shouldFail=false;

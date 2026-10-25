@@ -1,0 +1,6 @@
+<%- include('../partials/header') %>
+<section class="page-title left"><span class="eyebrow">Your shortlist</span><h1>Saved jobs</h1><p>Keep opportunities here while you compare schedules. Saving a job does not reserve a place.</p></section>
+<% if(!jobs.length){ %><div class="empty-state"><h2>Build your shortlist</h2><p>Save jobs that interest you from their details page.</p><a class="btn" href="/jobs">Explore work</a></div><% } %>
+<div class="card-grid"><% jobs.forEach(job=>{ %><div><%- include('../partials/job-card',{job}) %><form method="POST" action="/jobs/<%= job.id %>/save">
+<input type="hidden" name="_csrf" value="<%= typeof csrfToken==='string'?csrfToken:'' %>"><input type="hidden" name="action" value="remove"><button class="btn secondary">Remove saved job</button></form></div><% }) %></div>
+<%- include('../partials/footer') %>

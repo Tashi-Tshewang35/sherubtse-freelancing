@@ -4,12 +4,12 @@
 <h1>Find work that fits you.</h1>
 <p>Compare opportunities, check the schedule and take your next step.</p>
 </section>
-<form class="filter-bar" id="workFilters" role="search">
-<label>Search opportunities<input type="search" name="search" placeholder="Work, business or location">
+<form method="GET" action="/jobs" class="filter-bar" id="workFilters" data-server-filters role="search">
+<label>Search opportunities<input type="search" name="search" placeholder="Work, business or location" value="<%= typeof filters!=='undefined' ? filters.search || '' : '' %>">
 </label>
 <label>Work type<select name="type">
 <option value="">All work types</option>
-<% [...new Set(jobs.map(j=>j.work_type))].sort().forEach(type=>{ %>
+<% (typeof workTypes!=='undefined'?workTypes:[...new Set(jobs.map(j=>j.work_type))]).sort().forEach(type=>{ %>
 <option>
 <%= type %>
 </option>
@@ -18,14 +18,14 @@
 </label>
 <label>Urgency<select name="urgency">
 <option value="">All opportunities</option>
-<option value="urgent">Urgent</option>
-<option value="normal">Normal</option>
+<option value="urgent" <%= typeof filters!=='undefined'&&filters.urgency==='urgent'?'selected':'' %>>Urgent</option>
+<option value="normal" <%= typeof filters!=='undefined'&&filters.urgency==='normal'?'selected':'' %>>Normal</option>
 </select>
 </label>
-<button type="reset" class="btn secondary">Clear filters</button>
+<label>Location<input name="location" value="<%= typeof filters!=='undefined' ? filters.location || '' : '' %>" placeholder="Kanglung"></label><label>Work date<input type="date" name="date" value="<%= typeof filters!=='undefined' ? filters.date || '' : '' %>"></label><label>Sort by<select name="sort"><% [['newest','Newest'],['closing','Closing soon'],['wage','Highest wage'],['urgent','Most urgent']].forEach(([value,label])=>{ %><option value="<%= value %>" <%= typeof filters!=='undefined'&&filters.sort===value?'selected':'' %>><%= label %></option><% }) %></select></label><button class="btn">Apply filters</button><a class="btn secondary" href="/jobs">Clear filters</a>
 </form>
 <p id="workCount" class="small" role="status">
-<%= jobs.length %> available opportunities &middot; All times are Bhutan time</p>
+<%= jobs.length %> available opportunities &middot; All times are Bhutan time. Highest wage sorts the listed rate; compare wage units.</p>
 <div class="card-grid" id="workResults">
 <% jobs.forEach(job=>{ %>
 <%- include('../partials/job-card',{job}) %>

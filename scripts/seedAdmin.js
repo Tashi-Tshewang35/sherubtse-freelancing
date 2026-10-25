@@ -8,6 +8,7 @@ async function seedAdmin() {
   const password = process.env.ADMIN_PASSWORD;
 
   if (!email || !password) throw new Error('Set ADMIN_EMAIL and ADMIN_PASSWORD in .env first.');
+  if (!require('../utils/validators').isValidPassword(password)) throw new Error('ADMIN_PASSWORD must have at least 8 characters and fit within 72 bytes.');
   const passwordHash = await bcrypt.hash(password, 10);
 
   const admin = await db.one(
@@ -20,9 +21,9 @@ async function seedAdmin() {
      RETURNING id, name, email`,
     [name, email.toLowerCase(), passwordHash]
   );
-  console.log(`Admin ready: ${admin.email}`);
+  console.log('Administrator bootstrap completed. No password displayed.');
 }
 
 seedAdmin()
-  .catch(error => { console.error(error.message); process.exitCode = 1; })
+  .catch(() => { console.error('Administrator bootstrap failed. Check required administrator variables and database connectivity. Credentials withheld.'); process.exitCode = 1; })
   .finally(() => db.$pool.end());
