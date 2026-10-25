@@ -7,4 +7,7 @@ const local = loaded.parsed;
 if (!Object.prototype.hasOwnProperty.call(local, 'DATABASE_URL') && local.DB_NAME && local.DB_HOST) {
   delete process.env.DATABASE_URL;
 }
+if (!Object.prototype.hasOwnProperty.call(local, 'MONGO_URI') && local.MONGODB_URI) {
+  delete process.env.MONGO_URI;
+}
 process.env.NODE_ENV = 'development';

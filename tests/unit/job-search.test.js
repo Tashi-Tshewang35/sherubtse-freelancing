@@ -13,5 +13,5 @@ test.each(['newest','closing','wage','urgent'])('orders jobs by %s',sort=>expect
 test('demo seed rejects production, remote hosts and ordinary databases before connecting',()=>{
  const safe={NODE_ENV:'development',ALLOW_DEMO_SEED:'true',DEMO_SEED_PASSWORD:'DemoTestPassword123!',DATABASE_URL:'postgresql://localhost/platform_demo',MONGODB_URI:'mongodb://127.0.0.1',MONGODB_DB:'platform_demo'};
  expect(()=>assertDemo(safe)).not.toThrow();
- for(const override of [{NODE_ENV:'production'},{ALLOW_DEMO_SEED:'false'},{DATABASE_URL:'postgresql://remote.example/platform_demo'},{DATABASE_URL:'postgresql://localhost/production'},{MONGODB_DB:'production'}])expect(()=>assertDemo({...safe,...override})).toThrow();
+ for(const override of [{NODE_ENV:'production'},{ALLOW_DEMO_SEED:'false'},{DATABASE_URL:'postgresql://remote.example/platform_demo'},{DATABASE_URL:'postgresql://localhost/production'},{MONGODB_DB:'production'},{MONGO_URI:'mongodb://remote.example/platform_demo'}])expect(()=>assertDemo({...safe,...override})).toThrow();
 });

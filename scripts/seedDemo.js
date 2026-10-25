@@ -6,7 +6,7 @@ function assertDemo(env){
   const url=env.DATABASE_URL?new URL(env.DATABASE_URL):null;
   const host=url?.hostname||env.DB_HOST||'localhost';
   const name=url?decodeURIComponent(url.pathname.slice(1)):env.DB_NAME;
-  const mongo=new URL(env.MONGODB_URI||'mongodb://127.0.0.1:27017');
+  const mongo=new URL(env.MONGO_URI||env.MONGODB_URI||'mongodb://127.0.0.1:27017');
   if(!['localhost','127.0.0.1','[::1]'].includes(host)||!name?.endsWith('_demo')||!['localhost','127.0.0.1','[::1]'].includes(mongo.hostname)||!env.MONGODB_DB?.endsWith('_demo'))throw new Error('Demo seeding requires local PostgreSQL and MongoDB databases with names ending in _demo.');
 }
 async function main(){

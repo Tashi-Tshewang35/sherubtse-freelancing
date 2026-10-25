@@ -53,7 +53,7 @@ No new required Render environment variable is introduced. Keep existing secrets
 | Sessions | `SESSION_SECRET` with at least 32 random characters |
 | Public origin | `APP_URL` HTTPS origin, or Render's `RENDER_EXTERNAL_URL` |
 | PostgreSQL | `DATABASE_URL`, or `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS`; `DB_SSL=true` for verified TLS where required |
-| MongoDB Atlas | `MONGODB_URI`, `MONGODB_DB` |
+| MongoDB Atlas | `MONGO_URI` or backwards-compatible `MONGODB_URI`, plus `MONGODB_DB` |
 | Email provider | `EMAIL_PROVIDER` (`gmail`, `gmail-api`, `resend`) |
 | Gmail SMTP | `GMAIL_USER`, `GMAIL_APP_PASSWORD` |
 | Gmail API | `GMAIL_USER`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN` |
@@ -64,7 +64,9 @@ No new required Render environment variable is introduced. Keep existing secrets
 Choose only one mail provider. Password recovery reuses its delivery implementation
 and the trusted configured origin, never the request Host header. Providers are
 mocked in automated tests; actual inbox delivery must be verified by the operator.
-Bootstrap deliberately with `npm run seed:admin`; no web signup can set `is_admin`.
+Startup preserves the existing Render administrator bootstrap when `ADMIN_EMAIL`
+and `ADMIN_PASSWORD` are configured; `npm run seed:admin` also supports deliberate
+manual setup. No web signup can set `is_admin`.
 Use a unique strong administrator password and never paste it into reports or logs.
 
 Atlas must permit the hosting network and the configured database user. Duplicate
